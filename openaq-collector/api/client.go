@@ -13,9 +13,10 @@ import (
 
 // Client handles HTTP requests to air quality APIs
 type Client struct {
-	httpClient *http.Client
-	baseURL    string
-	apiKey     string
+	httpClient    *http.Client
+	baseURL       string
+	apiKey        string
+	kafkaProducer *KafkaProducer
 }
 
 // NewClient creates a new API client
@@ -27,6 +28,10 @@ func NewClient(baseURL string, apiKey string) *Client {
 		baseURL: baseURL,
 		apiKey:  apiKey,
 	}
+}
+
+func (c *Client) SetKafkaProducer(kafkaProducer *KafkaProducer) {
+	c.kafkaProducer = kafkaProducer
 }
 
 func (c *Client) FetchAirQualityData() error {
@@ -56,13 +61,14 @@ func (c *Client) FetchAirQualityData() error {
 		allLocationsData = append(allLocationsData, locationData)
 	}
 
-	// Send all data to Kafka
-	// for _, locationData := range allLocationsData {
-	//     if err := c.sendToKafka(locationData); err != nil {
-	//         log.Printf("Error sending data to Kafka for location %d: %v",
-	//             locationData.Location.ID, err)
-	//     }
-	// }
+	if c.kafkaProducer != nil {
+		for _, locationData := range allLocationsData {
+			if err := c.kafkaProducer.SendLocationData(locationData); err != nil {
+				log.Printf("Error sending data to Kafka for location %d: %v",
+					locationData.Location.ID, err)
+			}
+		}
+	}
 
 	log.Printf("Successfully processed %d locations", len(allLocationsData))
 

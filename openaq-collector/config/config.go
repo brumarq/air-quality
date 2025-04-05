@@ -12,6 +12,8 @@ type Config struct {
 	APIEndpoint  string
 	APIKey       string
 	PollInterval time.Duration
+	KafkaBrokers []string
+	KafkaTopic   string
 }
 
 func Load() *Config {
@@ -22,6 +24,8 @@ func Load() *Config {
 		APIEndpoint:  getEnv("OPENAQ_API_ENDPOINT", ""),
 		APIKey:       getEnv("OPENAQ_API_KEY", ""),
 		PollInterval: getDuration("POLL_INTERVAL", 5*time.Minute),
+		KafkaBrokers: []string{getEnv("KAFKA_BROKER", "localhost:9092")},
+		KafkaTopic:   getEnv("KAFKA_TOPIC", "sensor-data"),
 	}
 }
 

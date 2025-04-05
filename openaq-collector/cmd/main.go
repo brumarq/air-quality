@@ -20,6 +20,16 @@ func main() {
 	client := api.NewClient(cfg.APIEndpoint, cfg.APIKey)
 	srv := server.NewServer(cfg.ServerPort)
 
+	if len(cfg.KafkaBrokers) > 0 && cfg.KafkaTopic != "" {
+		kafkaProducer, err := api.NewKafkaProducer(cfg.KafkaBrokers, cfg.KafkaTopic)
+		if err != nil {
+			fmt.Printf("Warning: Failed to initialize Kafka producer: %v\n", err)
+		} else {
+			client.SetKafkaProducer(kafkaProducer)
+			fmt.Printf("Kafka producer initialized for topic: %s\n", cfg.KafkaTopic)
+		}
+	}
+
 	// Setup shutdown handling
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
