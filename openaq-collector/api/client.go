@@ -55,7 +55,7 @@ func (c *Client) FetchAirQualityData() error {
 		locationData, err := c.FetchLocationWithSensors(locationId)
 		if err != nil {
 			log.Printf("Error processing location %d: %v", locationId, err)
-			continue // Skip this location but continue with others
+			continue
 		}
 
 		allLocationsData = append(allLocationsData, locationData)
