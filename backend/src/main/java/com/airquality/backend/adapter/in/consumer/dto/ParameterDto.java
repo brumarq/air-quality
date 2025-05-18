@@ -7,10 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SensorDto {
-    private Integer id;
-    private ParameterDto parameter;
-    private String unit;
-    private Double lastValue;
-    private String lastUpdated;
+public class ParameterDto {
+    private String name;
+    private String units;
+    private String displayName;
 }

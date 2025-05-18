@@ -18,7 +18,7 @@ public class AirQualityConsumer {
     private final ConsumerDtoMapper consumerDtoMapper;
     private final ObjectMapper objectMapper;
 
-    @KafkaListener(topics = "${kafka.topic.air-quality}")
+    @KafkaListener(topics = "${app.kafka.topic.sensor-data}")
     public void consume(String message) {
         try {
             log.info("Received Kafka message: {}", message);

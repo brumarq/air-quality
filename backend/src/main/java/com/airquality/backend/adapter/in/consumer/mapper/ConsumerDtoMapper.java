@@ -29,8 +29,8 @@ public class ConsumerDtoMapper {
     private Sensor toDomain(SensorDto dto) {
         return Sensor.builder()
                 .id(dto.getId())
-                .parameter(dto.getParameter())
-                .unit(dto.getUnit())
+                .parameter(dto.getParameter().getName())
+                .unit(dto.getParameter().getUnits())
                 .lastValue(dto.getLastValue())
                 .lastUpdated(dto.getLastUpdated())
                 .build();
