@@ -1,14 +1,100 @@
 package com.airquality.backend.application.service;
 
+import com.airquality.backend.adapter.out.persistence.entity.LocationEntity;
+import com.airquality.backend.adapter.out.persistence.entity.SensorEntity;
+import com.airquality.backend.adapter.out.persistence.entity.SensorReadingEntity;
+import com.airquality.backend.adapter.out.persistence.mapper.PersistenceMapper;
+import com.airquality.backend.adapter.out.persistence.repository.LocationRepository;
+import com.airquality.backend.adapter.out.persistence.repository.SensorReadingRepository;
+import com.airquality.backend.adapter.out.persistence.repository.SensorRepository;
+import com.airquality.backend.application.domain.model.Location;
 import com.airquality.backend.application.domain.model.LocationData;
+import com.airquality.backend.application.domain.model.Sensor;
 import com.airquality.backend.application.port.in.ProcessAirQualityDataUseCase;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
+@Slf4j
 @Service
+@RequiredArgsConstructor
 public class AirQualityService implements ProcessAirQualityDataUseCase {
 
+    private final LocationRepository locationRepository;
+    private final SensorRepository sensorRepository;
+    private final SensorReadingRepository sensorReadingRepository;
+    private final PersistenceMapper persistenceMapper;
+
     @Override
+    @Transactional
     public void processAirQualityData(LocationData locationData) {
-        System.out.println("Processing air quality data: " + locationData.getLocation().getName());
+        log.info("Processing air quality data for location: {}", locationData.getLocation().getName());
+        
+        try {
+            LocationEntity locationEntity = saveOrUpdateLocation(locationData.getLocation());
+            
+            for (Sensor sensor : locationData.getSensors()) {
+                SensorEntity sensorEntity = saveOrUpdateSensor(sensor, locationEntity);
+                saveSensorReading(sensor, sensorEntity);
+            }
+            
+            log.info("Successfully processed {} sensors for location: {}", 
+                    locationData.getSensors().size(), locationData.getLocation().getName());
+        } catch (Exception e) {
+            log.error("Error processing air quality data for location: {}", 
+                    locationData.getLocation().getName(), e);
+            throw e;
+        }
+    }
+    
+    private LocationEntity saveOrUpdateLocation(Location location) {
+        return locationRepository.findById(location.getId())
+                .map(existing -> {
+                    existing.setName(location.getName());
+                    existing.setCity(location.getCity());
+                    existing.setCountry(location.getCountry());
+                    existing.setLatitude(location.getLatitude());
+                    existing.setLongitude(location.getLongitude());
+                    return locationRepository.save(existing);
+                })
+                .orElseGet(() -> {
+                    LocationEntity newLocation = persistenceMapper.toEntity(location);
+                    return locationRepository.save(newLocation);
+                });
+    }
+    
+    private SensorEntity saveOrUpdateSensor(Sensor sensor, LocationEntity locationEntity) {
+        return sensorRepository.findBySensorIdAndParameterAndLocationId(
+                sensor.getId(), sensor.getParameter(), locationEntity.getId())
+                .map(existing -> {
+                    existing.setUnit(sensor.getUnit());
+                    existing.setLastValue(sensor.getLastValue());
+                    existing.setLastUpdated(persistenceMapper.parseDateTime(sensor.getLastUpdated()));
+                    return sensorRepository.save(existing);
+                })
+                .orElseGet(() -> {
+                    SensorEntity newSensor = persistenceMapper.toEntity(sensor, locationEntity);
+                    return sensorRepository.save(newSensor);
+                });
+    }
+    
+    private void saveSensorReading(Sensor sensor, SensorEntity sensorEntity) {
+        if (sensor.getLastValue() != null) {
+            LocalDateTime timestamp = persistenceMapper.parseDateTime(sensor.getLastUpdated());
+            
+            if (!sensorReadingRepository.existsBySensorIdAndTimestampAndValue(
+                    sensorEntity.getId(), timestamp, sensor.getLastValue())) {
+                SensorReadingEntity reading = persistenceMapper.toReadingEntity(sensor, sensorEntity);
+                sensorReadingRepository.save(reading);
+                log.info("Saved sensor reading for sensor {} with value {}",
+                         sensorEntity.getSensorId(), sensor.getLastValue());
+            } else {
+                log.info("Duplicate sensor reading ignored for sensor {} with value {}",
+                         sensorEntity.getSensorId(), sensor.getLastValue());
+            }
+        }
     }
 }
