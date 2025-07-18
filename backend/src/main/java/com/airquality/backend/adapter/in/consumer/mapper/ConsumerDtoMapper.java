@@ -31,8 +31,8 @@ public class ConsumerDtoMapper {
                 .id(dto.getId())
                 .parameter(dto.getParameter().getName())
                 .unit(dto.getParameter().getUnits())
-                .lastValue(dto.getLastValue())
-                .lastUpdated(dto.getLastUpdated())
+                .lastValue(dto.getMeasurement().getValue())
+                .lastUpdated(dto.getMeasurement().getDatetime().getUtc())
                 .build();
     }
 
@@ -40,10 +40,10 @@ public class ConsumerDtoMapper {
         return Location.builder()
                 .id(dto.getId())
                 .name(dto.getName())
-                .city(dto.getCity())
+                .city(null)
                 .country(dto.getCountry())
-                .latitude(dto.getLatitude())
-                .longitude(dto.getLongitude())
+                .latitude(dto.getCoordinates().getLatitude())
+                .longitude(dto.getCoordinates().getLongitude())
                 .build();
     }
 }
