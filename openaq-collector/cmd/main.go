@@ -58,7 +58,10 @@ func startHTTPServer(srv *server.Server) {
 // startDataCollector initiates periodic data collection
 func startDataCollector(ctx context.Context, client *api.Client) {
 	go func() {
-		ticker := time.NewTicker(2 * time.Second)
+		// Fetch data immediately on startup
+		client.FetchAirQualityData()
+		
+		ticker := time.NewTicker(2 * time.Minute)
 		defer ticker.Stop()
 
 		for {
