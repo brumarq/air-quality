@@ -11,9 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Sensor {
     private Integer id;
-    private String parameter;
-    private String unit;
-    private Double lastValue;
-    private String lastUpdated;
-    private Integer locationId;
+    private Parameter parameter;
+    private Measurement lastMeasurement;
+    private Location location;
 }

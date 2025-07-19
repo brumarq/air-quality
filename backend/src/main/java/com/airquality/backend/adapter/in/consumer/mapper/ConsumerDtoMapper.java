@@ -3,9 +3,13 @@ package com.airquality.backend.adapter.in.consumer.mapper;
 import com.airquality.backend.adapter.in.consumer.dto.LocationDto;
 import com.airquality.backend.adapter.in.consumer.dto.SensorDataDto;
 import com.airquality.backend.adapter.in.consumer.dto.SensorDto;
+import com.airquality.backend.application.domain.model.Coordinates;
 import com.airquality.backend.application.domain.model.Location;
 import com.airquality.backend.application.domain.model.LocationData;
+import com.airquality.backend.application.domain.model.Measurement;
+import com.airquality.backend.application.domain.model.Parameter;
 import com.airquality.backend.application.domain.model.Sensor;
+import com.airquality.backend.application.domain.model.Unit;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -29,10 +33,13 @@ public class ConsumerDtoMapper {
     private Sensor toDomain(SensorDto dto) {
         return Sensor.builder()
                 .id(dto.getId())
-                .parameter(dto.getParameter().getName())
-                .unit(dto.getParameter().getUnits())
-                .lastValue(dto.getMeasurement().getValue())
-                .lastUpdated(dto.getMeasurement().getDatetime().getUtc())
+                .parameter(Parameter.fromName(dto.getParameter().getName()))
+                .lastMeasurement(
+                        Measurement.builder()
+                                .value(dto.getMeasurement().getValue())
+                                .parameter(Parameter.fromName(dto.getParameter().getName()))
+                                .timestamp(dto.getMeasurement().getDatetime().toLocalDateTime())
+                                .unit(Unit.fromDisplayValue(dto.getParameter().getUnits())).build())
                 .build();
     }
 
@@ -42,8 +49,12 @@ public class ConsumerDtoMapper {
                 .name(dto.getName())
                 .city(null)
                 .country(dto.getCountry())
-                .latitude(dto.getCoordinates().getLatitude())
-                .longitude(dto.getCoordinates().getLongitude())
+                .coordinates(
+                        Coordinates.builder().
+                                latitude(dto.getCoordinates().getLatitude())
+                                .longitude(dto.getCoordinates().getLongitude())
+                                .build()
+                )
                 .build();
     }
 }

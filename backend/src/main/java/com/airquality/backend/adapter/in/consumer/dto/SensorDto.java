@@ -5,6 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -30,6 +33,16 @@ public class SensorDto {
         public static class DateTimeDto {
             private String utc;
             private String local;
+
+            public LocalDateTime toLocalDateTime() {
+                if (utc != null) {
+                    return OffsetDateTime.parse(utc).toLocalDateTime();
+                }
+                if (local != null) {
+                    return LocalDateTime.parse(local);
+                }
+                throw new IllegalStateException("Both utc and local are null");
+            }
         }
     }
 }
