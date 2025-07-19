@@ -1,6 +1,5 @@
 import type mapboxgl from "mapbox-gl"
-import type { AirQualityStation } from "@/data/air-quality-stations"
-import { getAQIColor } from "./aqi-utils"
+import type { AirQualityStation } from "@/lib/types/air-quality"
 
 // Generate GeoJSON for air quality data
 export const generateAirQualityGeoJSON = (stations: AirQualityStation[]) => {
@@ -11,8 +10,6 @@ export const generateAirQualityGeoJSON = (stations: AirQualityStation[]) => {
       properties: {
         id: station.id,
         name: station.name,
-        aqi: station.aqi,
-        trend: station.trend,
       },
       geometry: {
         type: "Point",
@@ -20,61 +17,6 @@ export const generateAirQualityGeoJSON = (stations: AirQualityStation[]) => {
       },
     })),
   }
-}
-
-// Create a pulsing dot animation
-export const createPulsingDot = (map: mapboxgl.Map) => {
-  if (map.hasImage("pulsing-dot")) return
-
-  const size = 200
-  const pulsingDot = {
-    width: size,
-    height: size,
-    data: new Uint8Array(size * size * 4),
-
-    onAdd: function () {
-      const canvas = document.createElement("canvas")
-      canvas.width = this.width
-      canvas.height = this.height
-      this.context = canvas.getContext("2d")
-    },
-
-    render: function () {
-      const duration = 1500
-      const t = (performance.now() % duration) / duration
-
-      const radius = (size / 2) * 0.3
-      const outerRadius = (size / 2) * 0.7 * t + radius
-      const context = this.context
-
-      // Draw the outer circle
-      context.clearRect(0, 0, this.width, this.height)
-      context.beginPath()
-      context.arc(this.width / 2, this.height / 2, outerRadius, 0, Math.PI * 2)
-      context.fillStyle = `rgba(255, 200, 200, ${1 - t})`
-      context.fill()
-
-      // Draw the inner circle
-      context.beginPath()
-      context.arc(this.width / 2, this.height / 2, radius, 0, Math.PI * 2)
-      context.fillStyle = "rgba(255, 100, 100, 1)"
-      context.strokeStyle = "white"
-      context.lineWidth = 2 + 4 * (1 - t)
-      context.fill()
-      context.stroke()
-
-      // Update this image's data with data from the canvas
-      this.data = context.getImageData(0, 0, this.width, this.height).data
-
-      // Continuously repaint the map, resulting in the smooth animation of the dot
-      map.triggerRepaint()
-
-      // Return `true` to let the map know that the image was updated
-      return true
-    },
-  }
-
-  map.addImage("pulsing-dot", pulsingDot, { pixelRatio: 2 })
 }
 
 // Add Luxembourg boundary to the map
@@ -144,8 +86,8 @@ export const addAirQualityLayers = (
       source: "air-quality-data",
       maxzoom: 15,
       paint: {
-        // Weight by AQI value
-        "heatmap-weight": ["interpolate", ["linear"], ["get", "aqi"], 50, 0.4, 100, 0.6, 200, 0.8, 300, 1],
+        // Weight by station presence
+        "heatmap-weight": 1,
         // Increase intensity at higher zoom levels
         "heatmap-intensity": ["interpolate", ["linear"], ["zoom"], 8, 0.1, 12, 2],
         // Color based on density
@@ -177,41 +119,7 @@ export const addAirQualityLayers = (
     map.setPaintProperty("heatmap-layer", "heatmap-opacity", heatmapVisible ? 0.8 : 0)
   }
 
-  // Add glowing circle effect layer if it doesn't exist
-  if (!map.getLayer(glowCircleLayerId)) {
-    map.addLayer({
-      id: glowCircleLayerId,
-      type: "circle",
-      source: "air-quality-data",
-      paint: {
-        // Base circle color and size on AQI
-        "circle-color": [
-          "match",
-          ["get", "aqi"],
-          0,
-          "#14B8A6",
-          ...stations.flatMap((station) => [station.aqi, getAQIColor(station.aqi)]),
-          "#14B8A6", // default color
-        ],
-        "circle-radius": 14,
-        "circle-opacity": 0.8,
-        // Add a glowing effect with a stroke and blur
-        "circle-stroke-width": 2,
-        "circle-stroke-color": [
-          "match",
-          ["get", "aqi"],
-          0,
-          "rgba(20, 184, 166, 0.8)",
-          ...stations.flatMap((station) => [
-            station.aqi,
-            getAQIColor(station.aqi).replace(")", ", 0.8)").replace("rgb", "rgba"),
-          ]),
-          "rgba(20, 184, 166, 0.8)", // default color
-        ],
-        "circle-blur": 0.15,
-      },
-    })
-  }
+  // Skip glow effect for now
 
   // Add inner circle layer if it doesn't exist
   if (!map.getLayer("air-quality-stations")) {
@@ -224,14 +132,7 @@ export const addAirQualityLayers = (
         "circle-color": "#ffffff",
         "circle-opacity": 0.9,
         "circle-stroke-width": 2,
-        "circle-stroke-color": [
-          "match",
-          ["get", "aqi"],
-          0,
-          "#14B8A6",
-          ...stations.flatMap((station) => [station.aqi, getAQIColor(station.aqi)]),
-          "#14B8A6", // default color
-        ],
+        "circle-stroke-color": "#14B8A6",
       },
     })
   }
@@ -243,7 +144,7 @@ export const addAirQualityLayers = (
       type: "symbol",
       source: "air-quality-data",
       layout: {
-        "text-field": ["to-string", ["get", "aqi"]],
+        "text-field": ["get", "name"],
         "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
         "text-size": 12,
         "text-allow-overlap": true,
@@ -254,21 +155,7 @@ export const addAirQualityLayers = (
     })
   }
 
-  // Add pulsing markers
-  createPulsingDot(map)
-
-  // Add pulsing dots layer if it doesn't exist
-  if (!map.getLayer(pulseMarkerLayerId)) {
-    map.addLayer({
-      id: pulseMarkerLayerId,
-      type: "symbol",
-      source: "air-quality-data",
-      layout: {
-        "icon-image": "pulsing-dot",
-        "icon-size": ["interpolate", ["linear"], ["get", "aqi"], 50, 0.2, 100, 0.25, 200, 0.3, 300, 0.35],
-      },
-    })
-  }
+  // Skip pulsing markers for now
 }
 
 // Animate glow effect
@@ -277,9 +164,13 @@ export const animateGlow = (map: mapboxgl.Map, glowCircleLayerId: string, callba
   const blur = 0.1 + Math.abs(Math.sin(t * Math.PI * 2)) * 0.2
   const opacity = 0.7 + Math.sin(t * Math.PI * 2) * 0.3
 
-  if (map && map.getLayer(glowCircleLayerId)) {
-    map.setPaintProperty(glowCircleLayerId, "circle-blur", blur)
-    map.setPaintProperty(glowCircleLayerId, "circle-opacity", opacity)
+  try {
+    if (map && map.getLayer && map.getLayer(glowCircleLayerId)) {
+      map.setPaintProperty(glowCircleLayerId, "circle-blur", blur)
+      map.setPaintProperty(glowCircleLayerId, "circle-opacity", opacity)
+    }
+  } catch (error) {
+    console.warn('Error animating glow:', error)
   }
 
   setTimeout(callback, 30)

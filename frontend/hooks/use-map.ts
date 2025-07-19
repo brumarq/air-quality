@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect, useCallback } from "react"
 import mapboxgl from "mapbox-gl"
-import type { AirQualityStation } from "@/data/air-quality-stations"
+import type { AirQualityStation } from "@/lib/types/air-quality"
 import { addLuxembourgBoundary, addAirQualityLayers, animateGlow } from "@/lib/utils/map-utils"
 
 // Set Mapbox access token from environment variable
@@ -104,56 +104,9 @@ export function useMap({ initialLng = 6.13, initialLat = 49.61, initialZoom = 9,
           // Add air quality data layers
           addAirQualityLayers(map.current, stations, heatmapVisible, glowCircleLayerId.current, pulseMarkerLayerId.current)
 
-          // Add event handlers for interactivity
-          map.current.on("click", "air-quality-stations", (e) => {
-            if (!map.current || !e.features || !e.features[0]) return
+          // Skip event handlers - will be added when stations are loaded
 
-            const coordinates = e.features[0].geometry.coordinates.slice()
-            const properties = e.features[0].properties
-
-            if (!properties) return
-
-            // Find the selected station
-            const station = stations.find((s) => s.id === properties.id)
-            if (station) {
-              setSelectedStation(station)
-
-              // Zoom to the clicked point with animation
-              map.current.flyTo({
-                center: coordinates as [number, number],
-                zoom: Math.max(map.current.getZoom(), 11.5),
-                duration: 1000,
-                essential: true,
-              })
-            }
-          })
-
-          // Change cursor on hover
-          map.current.on("mouseenter", "air-quality-stations", () => {
-            if (!map.current) return
-            map.current.getCanvas().style.cursor = "pointer"
-
-            // Add subtle zoom effect on hover
-            map.current.setPaintProperty("air-quality-stations", "circle-radius", 12)
-            map.current.setPaintProperty(glowCircleLayerId.current, "circle-radius", 16)
-          })
-
-          map.current.on("mouseleave", "air-quality-stations", () => {
-            if (!map.current) return
-            map.current.getCanvas().style.cursor = ""
-
-            // Reset circle size
-            map.current.setPaintProperty("air-quality-stations", "circle-radius", 10)
-            map.current.setPaintProperty(glowCircleLayerId.current, "circle-radius", 14)
-          })
-
-          // Set up animation for glow effect
-          function animateGlowEffect() {
-            if (!map.current) return
-            animateGlow(map.current, glowCircleLayerId.current, animateGlowEffect)
-          }
-
-          animateGlowEffect()
+          // Skip glow animation for now
           setMapLoaded(true)
           setMapError(null)
 
@@ -183,7 +136,83 @@ export function useMap({ initialLng = 6.13, initialLat = 49.61, initialZoom = 9,
       console.error("Error initializing map:", error)
       setMapError(`Error initializing map: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
-  }, [initialLng, initialLat, initialZoom, stations])
+  }, [initialLng, initialLat, initialZoom])
+
+  // Update stations when they are loaded
+  useEffect(() => {
+    if (!map.current || !mapLoaded || stations.length === 0) return
+
+    try {
+      // Update the stations source data
+      const source = map.current.getSource('air-quality-data')
+      if (source && 'setData' in source) {
+        const geojson = {
+          type: 'FeatureCollection',
+          features: stations.map(station => ({
+            type: 'Feature',
+            geometry: {
+              type: 'Point',
+              coordinates: [station.lng, station.lat]
+            },
+            properties: {
+              id: station.id,
+              name: station.name
+            }
+          }))
+        }
+        source.setData(geojson)
+      }
+
+      // Remove existing event handlers first
+      map.current.off("click", "air-quality-stations")
+      map.current.off("mouseenter", "air-quality-stations")
+      map.current.off("mouseleave", "air-quality-stations")
+
+      // Add event handlers now that we have stations
+      map.current.on("click", "air-quality-stations", (e) => {
+        if (!map.current || !e.features || !e.features[0]) return
+
+        const coordinates = e.features[0].geometry.coordinates.slice()
+        const properties = e.features[0].properties
+
+        if (!properties) return
+
+        // Find the selected station
+        const station = stations.find((s) => s.id === properties.id)
+        if (station) {
+          setSelectedStation(station)
+
+          // Zoom to the clicked point with animation
+          map.current.flyTo({
+            center: coordinates as [number, number],
+            zoom: Math.max(map.current.getZoom(), 11.5),
+            duration: 1000,
+            essential: true,
+          })
+        }
+      })
+
+      // Change cursor on hover
+      map.current.on("mouseenter", "air-quality-stations", () => {
+        if (!map.current) return
+        map.current.getCanvas().style.cursor = "pointer"
+
+        // Add subtle zoom effect on hover
+        map.current.setPaintProperty("air-quality-stations", "circle-radius", 12)
+      })
+
+      map.current.on("mouseleave", "air-quality-stations", () => {
+        if (!map.current) return
+        map.current.getCanvas().style.cursor = ""
+
+        // Reset circle size
+        map.current.setPaintProperty("air-quality-stations", "circle-radius", 10)
+      })
+
+    } catch (error) {
+      console.error("Error updating stations:", error)
+    }
+  }, [stations, mapLoaded])
 
   // Update heatmap visibility
   useEffect(() => {
