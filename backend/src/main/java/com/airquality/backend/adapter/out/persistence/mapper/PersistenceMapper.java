@@ -22,26 +22,26 @@ public class PersistenceMapper {
                 .name(location.getName())
                 .city(location.getCity())
                 .country(location.getCountry())
-                .latitude(location.getLatitude())
-                .longitude(location.getLongitude())
+                .latitude(location.getCoordinates().latitude())
+                .longitude(location.getCoordinates().longitude())
                 .build();
     }
     
     public SensorEntity toEntity(Sensor sensor, LocationEntity location) {
         return SensorEntity.builder()
                 .sensorId(sensor.getId())
-                .parameter(sensor.getParameter())
-                .unit(sensor.getUnit())
-                .lastValue(sensor.getLastValue())
-                .lastUpdated(parseDateTime(sensor.getLastUpdated()))
+                .parameter(sensor.getParameter().getValue())
+                .unit(sensor.getLastMeasurement().unit().getValue())
+                .lastValue(sensor.getLastMeasurement().value())
+                .lastUpdated(sensor.getLastMeasurement().timestamp())
                 .location(location)
                 .build();
     }
     
     public SensorReadingEntity toReadingEntity(Sensor sensor, SensorEntity sensorEntity) {
         return SensorReadingEntity.builder()
-                .value(sensor.getLastValue())
-                .timestamp(parseDateTime(sensor.getLastUpdated()))
+                .value(sensor.getLastMeasurement().value())
+                .timestamp(parseDateTime(sensor.getLastMeasurement().timestamp().toString()))
                 .sensor(sensorEntity)
                 .build();
     }

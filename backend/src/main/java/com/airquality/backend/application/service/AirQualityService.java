@@ -16,8 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -56,8 +54,8 @@ public class AirQualityService implements ProcessAirQualityDataUseCase {
                     existing.setName(location.getName());
                     existing.setCity(location.getCity());
                     existing.setCountry(location.getCountry());
-                    existing.setLatitude(location.getLatitude());
-                    existing.setLongitude(location.getLongitude());
+                    existing.setLatitude(location.getCoordinates().latitude());
+                    existing.setLongitude(location.getCoordinates().longitude());
                     return locationRepository.save(existing);
                 })
                 .orElseGet(() -> {
@@ -68,11 +66,11 @@ public class AirQualityService implements ProcessAirQualityDataUseCase {
     
     private SensorEntity saveOrUpdateSensor(Sensor sensor, LocationEntity locationEntity) {
         return sensorRepository.findBySensorIdAndParameterAndLocationId(
-                sensor.getId(), sensor.getParameter(), locationEntity.getId())
+                sensor.getId(), sensor.getParameter().getValue(), locationEntity.getId())
                 .map(existing -> {
-                    existing.setUnit(sensor.getUnit());
-                    existing.setLastValue(sensor.getLastValue());
-                    existing.setLastUpdated(persistenceMapper.parseDateTime(sensor.getLastUpdated()));
+                    existing.setUnit(sensor.getLastMeasurement().unit().getValue());
+                    existing.setLastValue(sensor.getLastMeasurement().value());
+                    existing.setLastUpdated(persistenceMapper.parseDateTime(sensor.getLastMeasurement().timestamp().toString()));
                     return sensorRepository.save(existing);
                 })
                 .orElseGet(() -> {
@@ -82,18 +80,16 @@ public class AirQualityService implements ProcessAirQualityDataUseCase {
     }
     
     private void saveSensorReading(Sensor sensor, SensorEntity sensorEntity) {
-        if (sensor.getLastValue() != null) {
-            LocalDateTime timestamp = persistenceMapper.parseDateTime(sensor.getLastUpdated());
-            
+        if (sensor.getLastMeasurement() != null) {
             if (!sensorReadingRepository.existsBySensorIdAndTimestampAndValue(
-                    sensorEntity.getId(), timestamp, sensor.getLastValue())) {
+                    sensorEntity.getId(), sensor.getLastMeasurement().timestamp(), sensor.getLastMeasurement().value())) {
                 SensorReadingEntity reading = persistenceMapper.toReadingEntity(sensor, sensorEntity);
                 sensorReadingRepository.save(reading);
                 log.info("Saved sensor reading for sensor {} with value {}",
-                         sensorEntity.getSensorId(), sensor.getLastValue());
+                         sensorEntity.getSensorId(), sensor.getLastMeasurement().value());
             } else {
                 log.info("Duplicate sensor reading ignored for sensor {} with value {}",
-                         sensorEntity.getSensorId(), sensor.getLastValue());
+                         sensorEntity.getSensorId(), sensor.getLastMeasurement().value());
             }
         }
     }
