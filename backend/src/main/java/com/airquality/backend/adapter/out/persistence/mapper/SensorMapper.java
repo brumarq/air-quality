@@ -5,6 +5,8 @@ import com.airquality.backend.application.domain.model.Parameter;
 import com.airquality.backend.application.domain.model.Sensor;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 @Component
 public class SensorMapper {
 
@@ -15,8 +17,8 @@ public class SensorMapper {
 
         return Sensor.builder()
                 .id(entity.getId())
-                .parameter(Parameter.valueOf(entity.getParameter().toUpperCase()))
-                .lastMeasurement(null) // Would need to fetch latest reading separately
+                .parameter(Parameter.fromValue(entity.getParameter()))
+                .lastMeasurement(Optional.empty()) // No measurement data when loading sensors directly
                 .build();
     }
 
