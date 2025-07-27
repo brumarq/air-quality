@@ -2,7 +2,7 @@ package com.airquality.backend.adapter.in.consumer;
 
 import com.airquality.backend.adapter.in.consumer.dto.SensorDataDto;
 import com.airquality.backend.adapter.in.consumer.mapper.ConsumerDtoMapper;
-import com.airquality.backend.application.domain.model.LocationData;
+import com.airquality.backend.application.domain.model.MonitoringStation;
 import com.airquality.backend.application.port.in.ProcessAirQualityDataUseCase;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +24,7 @@ public class AirQualityConsumer {
             log.info("Received Kafka message: {}", message);
 
             SensorDataDto locationDataDto = objectMapper.readValue(message, SensorDataDto.class);
-            LocationData locationData = consumerDtoMapper.toDomain(locationDataDto);
+            MonitoringStation locationData = consumerDtoMapper.toDomain(locationDataDto);
             processAirQualityDataUseCase.processAirQualityData(locationData);
 
         } catch (Exception e) {

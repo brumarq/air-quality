@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 
@@ -13,9 +15,12 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SensorDto {
+    @NotNull
     private Integer id;
     private String name;
+    @NotNull @Valid
     private ParameterDto parameter;
+    @NotNull @Valid
     private MeasurementDto measurement;
     
     @Data
@@ -23,7 +28,9 @@ public class SensorDto {
     @AllArgsConstructor
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class MeasurementDto {
+        @NotNull @Valid
         private DateTimeDto datetime;
+        @NotNull
         private Double value;
         
         @Data

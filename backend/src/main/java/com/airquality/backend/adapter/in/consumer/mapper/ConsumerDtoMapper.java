@@ -5,20 +5,24 @@ import com.airquality.backend.adapter.in.consumer.dto.SensorDataDto;
 import com.airquality.backend.adapter.in.consumer.dto.SensorDto;
 import com.airquality.backend.application.domain.model.Coordinates;
 import com.airquality.backend.application.domain.model.Location;
-import com.airquality.backend.application.domain.model.LocationData;
 import com.airquality.backend.application.domain.model.Measurement;
+import com.airquality.backend.application.domain.model.MonitoringStation;
 import com.airquality.backend.application.domain.model.Parameter;
 import com.airquality.backend.application.domain.model.Sensor;
 import com.airquality.backend.application.domain.model.Unit;
 import org.springframework.stereotype.Component;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
 public class ConsumerDtoMapper {
-    public LocationData toDomain(SensorDataDto dto) {
-        return LocationData.builder()
+    public MonitoringStation toDomain(@Valid @NotNull SensorDataDto dto) {
+        return MonitoringStation.builder()
+                .id(dto.getLocation().getId())
                 .location(toDomain(dto.getLocation()))
                 .sensors(toDomainSensors(dto.getSensors()))
                 .build();
@@ -30,22 +34,21 @@ public class ConsumerDtoMapper {
                 .collect(Collectors.toList());
     }
 
-    private Sensor toDomain(SensorDto dto) {
+    private Sensor toDomain(@Valid @NotNull SensorDto dto) {
         return Sensor.builder()
                 .id(dto.getId())
-                .parameter(Parameter.fromName(dto.getParameter().getName()))
-                .lastMeasurement(
+                .parameter(Parameter.fromValue(dto.getParameter().getName()))
+                .lastMeasurement(Optional.of(
                         Measurement.builder()
                                 .value(dto.getMeasurement().getValue())
-                                .parameter(Parameter.fromName(dto.getParameter().getName()))
+                                .parameter(Parameter.fromValue(dto.getParameter().getName()))
                                 .timestamp(dto.getMeasurement().getDatetime().toLocalDateTime())
-                                .unit(Unit.fromDisplayValue(dto.getParameter().getUnits())).build())
+                                .unit(Unit.fromDisplayValue(dto.getParameter().getUnits())).build()))
                 .build();
     }
 
-    private Location toDomain(LocationDto dto) {
+    private Location toDomain(@Valid @NotNull LocationDto dto) {
         return Location.builder()
-                .id(dto.getId())
                 .name(dto.getName())
                 .city(null)
                 .country(dto.getCountry())
