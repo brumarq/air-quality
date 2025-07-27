@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 public class MonitoringStationMapper {
     
     private final SensorReadingEntityRepository sensorReadingEntityRepository;
+    private final SensorMapper sensorMapper;
 
     public MonitoringStationEntity toEntity(MonitoringStation domain) {
         MonitoringStationEntity entity = MonitoringStationEntity.builder()
@@ -48,7 +49,11 @@ public class MonitoringStationMapper {
                 .build();
 
         List<Sensor> sensors = entity.getSensors().stream()
-                .map(this::toSensorDomain)
+                .map(sensorEntity -> {
+                    Optional<SensorReadingEntity> latestReading = 
+                        sensorReadingEntityRepository.findLatestBySensorId(sensorEntity.getId());
+                    return sensorMapper.toDomain(sensorEntity, latestReading);
+                })
                 .collect(Collectors.toList());
 
         return MonitoringStation.builder()
@@ -63,27 +68,6 @@ public class MonitoringStationMapper {
                 .id(sensor.getId())
                 .parameter(sensor.getParameter().getValue())
                 .station(station)
-                .build();
-    }
-
-    private Sensor toSensorDomain(SensorEntity entity) {
-        Optional<SensorReadingEntity> latestReading = sensorReadingEntityRepository.findLatestBySensorId(entity.getId());
-        
-        Measurement measurement = null;
-        if (latestReading.isPresent()) {
-            SensorReadingEntity reading = latestReading.get();
-            measurement = Measurement.builder()
-                    .value(reading.getValue())
-                    .unit(Unit.fromDisplayValue(reading.getUnit()))
-                    .timestamp(reading.getTimestamp())
-                    .parameter(Parameter.fromValue(entity.getParameter()))
-                    .build();
-        }
-
-        return Sensor.builder()
-                .id(entity.getId())
-                .parameter(Parameter.fromValue(entity.getParameter()))
-                .lastMeasurement(Optional.ofNullable(measurement))
                 .build();
     }
 }

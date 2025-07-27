@@ -1,7 +1,7 @@
 package com.airquality.backend.application.service;
 
+import com.airquality.backend.application.domain.model.Measurement;
 import com.airquality.backend.application.domain.model.MonitoringStation;
-import com.airquality.backend.application.domain.model.Parameter;
 import com.airquality.backend.application.domain.model.Sensor;
 import com.airquality.backend.application.port.in.GetSensorsUseCase;
 import com.airquality.backend.application.port.in.GetStationsUseCase;
@@ -24,6 +24,18 @@ public class AirQualityService implements ProcessAirQualityDataUseCase, GetStati
     private final MonitoringStationRepository stationRepository;
     private final SensorRepository sensorRepository;
     private final SensorReadingRepository sensorReadingRepository;
+
+    @Override
+    public List<MonitoringStation> getAllStations() {
+        log.info("Retrieving all monitoring stations");
+        return stationRepository.findAll();
+    }
+
+    @Override
+    public List<Sensor> getSensorsByStationId(Integer stationId) {
+        log.info("Retrieving sensors for station {}", stationId);
+        return sensorRepository.findByStationId(stationId);
+    }
 
     /**
      * Processes incoming air quality data from Kafka.
@@ -73,53 +85,33 @@ public class AirQualityService implements ProcessAirQualityDataUseCase, GetStati
      * Creates sensor if new, then processes its reading.
      */
     private void processSensorEntity(Integer stationId, Sensor sensor) {
-        boolean sensorExists = sensorRepository.exists(
+        Optional<Sensor> foundSensor = sensorRepository.getSensor(
                 sensor.getId(),
                 sensor.getParameter().getValue(),
                 stationId
         );
-        
-        if (!sensorExists) {
+
+        if (foundSensor.isEmpty()) {
             log.info("Creating new sensor {} for parameter {}", sensor.getId(), sensor.getParameter().getValue());
-            sensorRepository.save(stationId, sensor);
+            Sensor createdSensor = sensorRepository.save(stationId, sensor);
+            processSensorReading(createdSensor, sensor.getLastMeasurement());
+        }else {
+            log.debug("Using existing sensor {} for parameter {}", sensor.getId(), sensor.getParameter().getValue());
+            processSensorReading(foundSensor.get(), sensor.getLastMeasurement());
         }
-        
-        // Step 3: Process sensor reading entity independently
-        processSensorReading(stationId, sensor);
     }
     
     /**
      * Processes sensor reading entity independently.
      * Saves reading if measurement data is available.
      */
-    private void processSensorReading(Integer stationId, Sensor sensor) {
-        if (sensor.getLastMeasurement().isEmpty()) {
-            log.debug("No measurement data for sensor {}", sensor.getId());
+    private void processSensorReading(Sensor sensor, Optional<Measurement> measurement) {
+        if (measurement.isEmpty()) {
+            log.debug("No measurement data for sensor {} needed processing", sensor.getId());
             return;
         }
         
         log.debug("Processing reading for sensor {}", sensor.getId());
-        sensorRepository.getSensorEntityId(sensor.getId(), sensor.getParameter().getValue(), stationId)
-                .ifPresentOrElse(
-                        sensorEntityId -> sensorReadingRepository.save(sensorEntityId, sensor.getLastMeasurement().get()),
-                        () -> log.warn("Could not find sensor entity for sensor {}", sensor.getId())
-                );
-    }
-
-    @Override
-    public List<MonitoringStation> getAllStations() {
-        log.info("Retrieving all monitoring stations");
-        return stationRepository.findAll();
-    }
-
-    @Override
-    public List<Sensor> getSensorsByStationId(Integer stationId) {
-        log.info("Retrieving sensors for station {}", stationId);
-        return sensorRepository.findByStationId(stationId);
-    }
-
-    public Optional<MonitoringStation> getStationById(Integer stationId) {
-        log.info("Retrieving station {}", stationId);
-        return stationRepository.findById(stationId);
+        sensorReadingRepository.save(sensor.getId(), measurement.get());
     }
 }
