@@ -11,10 +11,10 @@ export interface Sensor {
   id: number
   sensorId: number
   parameter: string
-  unit: string
-  lastValue: number
-  lastUpdated: string
-  locationId: number
+  unit?: string
+  lastValue?: number
+  lastUpdated?: string
+  locationId?: number
 }
 
 export interface SensorReading {

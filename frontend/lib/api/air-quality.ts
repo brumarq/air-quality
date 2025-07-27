@@ -21,18 +21,23 @@ export class AirQualityApi {
   }
   
   static async getLocationReadings(locationId: number, hours: number = 24): Promise<SensorReading[]> {
-    const response = await fetch(`${API_BASE_URL}/locations/${locationId}/readings?hours=${hours}`)
-    if (!response.ok) {
-      throw new Error(`Failed to fetch readings for location ${locationId}`)
-    }
-    return response.json()
+    // Get sensors for the location, which already include latest readings
+    const sensors = await this.getLocationSensors(locationId)
+    
+    // Convert sensors to readings format
+    return sensors
+      .filter(sensor => sensor.lastValue !== null && sensor.lastValue !== undefined)
+      .map(sensor => ({
+        id: sensor.id,
+        value: sensor.lastValue,
+        timestamp: sensor.lastUpdated,
+        sensor: sensor
+      }))
   }
   
   static async getSensorReadings(sensorId: number, hours: number = 24): Promise<SensorReading[]> {
-    const response = await fetch(`${API_BASE_URL}/sensors/${sensorId}/readings?hours=${hours}`)
-    if (!response.ok) {
-      throw new Error(`Failed to fetch readings for sensor ${sensorId}`)
-    }
-    return response.json()
+    // For now, we don't have historical readings endpoint, so return empty array
+    // In the future, this would fetch historical data from a readings endpoint
+    return []
   }
 }
