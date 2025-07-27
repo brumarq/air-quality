@@ -1,5 +1,4 @@
-import type { AirQualityStation } from "@/data/air-quality-stations"
-import { getAQIColor, getAQICategory, getTrendArrow, getTrendColor } from "@/lib/utils/aqi-utils"
+import type { AirQualityStation } from "@/lib/types/air-quality"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 
 interface StationCardProps {
@@ -18,35 +17,27 @@ export function StationCard({ station }: StationCardProps) {
       <CardContent>
         <div className="space-y-4">
           <div>
-            <div className="text-xs text-muted-foreground mb-1">Current AQI</div>
-            <div className="flex items-center">
-              <span className="text-2xl font-semibold" style={{ color: getAQIColor(station.aqi) }}>
-                {station.aqi}
-              </span>
-              <span className="ml-2 text-lg" style={{ color: getTrendColor(station.trend) }}>
-                {getTrendArrow(station.trend)}
-              </span>
-            </div>
-            <div className="text-sm" style={{ color: getAQIColor(station.aqi) }}>
-              {getAQICategory(station.aqi)}
+            <div className="text-xs text-muted-foreground mb-1">Location</div>
+            <div className="text-sm">
+              {station.lat.toFixed(4)}, {station.lng.toFixed(4)}
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
-            <div className="bg-muted rounded p-2">
-              <div className="text-xs text-muted-foreground">24h Average</div>
-              <div className="text-sm font-medium">{Math.round(station.aqi * 0.95)}</div>
-            </div>
-            <div className="bg-muted rounded p-2">
-              <div className="text-xs text-muted-foreground">Trend</div>
-              <div className="text-sm font-medium capitalize" style={{ color: getTrendColor(station.trend) }}>
-                {station.trend}
+          {station.sensors && station.sensors.length > 0 && (
+            <div>
+              <div className="text-xs text-muted-foreground mb-2">Sensors</div>
+              <div className="space-y-1">
+                {station.sensors.slice(0, 3).map(sensor => (
+                  <div key={sensor.id} className="flex justify-between text-sm">
+                    <span>{sensor.parameter}</span>
+                    <span>{sensor.lastValue ?? 'N/A'} {sensor.unit}</span>
+                  </div>
+                ))}
               </div>
             </div>
-          </div>
+          )}
         </div>
       </CardContent>
     </Card>
   )
 }
-

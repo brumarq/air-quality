@@ -4,16 +4,16 @@ import type { AirQualityStation } from "@/lib/types/air-quality"
 // Generate GeoJSON for air quality data
 export const generateAirQualityGeoJSON = (stations: AirQualityStation[]) => {
   return {
-    type: "FeatureCollection",
+    type: "FeatureCollection" as const,
     features: stations.map((station) => ({
-      type: "Feature",
+      type: "Feature" as const,
       properties: {
         id: station.id,
         name: station.name,
       },
       geometry: {
-        type: "Point",
-        coordinates: [station.lng, station.lat],
+        type: "Point" as const,
+        coordinates: [station.lng, station.lat] as [number, number],
       },
     })),
   }

@@ -29,8 +29,8 @@ export class AirQualityApi {
       .filter(sensor => sensor.lastValue !== null && sensor.lastValue !== undefined)
       .map(sensor => ({
         id: sensor.id,
-        value: sensor.lastValue,
-        timestamp: sensor.lastUpdated,
+        value: sensor.lastValue!,
+        timestamp: sensor.lastUpdated!,
         sensor: sensor
       }))
   }

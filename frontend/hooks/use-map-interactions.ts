@@ -21,16 +21,13 @@ export function useMapInteractions({ map, mapLoaded, stations }: UseMapInteracti
   useEffect(() => {
     if (!map || !mapLoaded || stations.length === 0) return
 
-    // Remove existing event handlers to prevent duplicates
-    map.off("click", "air-quality-stations")
-    map.off("mouseenter", "air-quality-stations")
-    map.off("mouseleave", "air-quality-stations")
 
     // Handle station clicks
     const handleStationClick = (e: mapboxgl.MapMouseEvent) => {
       if (!e.features || !e.features[0]) return
 
-      const coordinates = e.features[0].geometry.coordinates.slice()
+      const geometry = e.features[0].geometry as any
+      const coordinates = geometry.coordinates.slice()
       const properties = e.features[0].properties
 
       if (!properties) return

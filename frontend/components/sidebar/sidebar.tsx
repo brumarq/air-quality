@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import type { AirQualityStation } from "@/data/air-quality-stations"
+import type { AirQualityStation } from "@/lib/types/air-quality"
 import { SidebarHeader } from "./sidebar-header"
 import { MapControls } from "./map-controls"
 import { MetricsGrid } from "./metrics-grid"
@@ -13,12 +13,11 @@ interface SidebarProps {
   lng: number
   lat: number
   zoom: number
-  heatmapVisible: boolean
   selectedStation: AirQualityStation | null
-  toggleHeatmap: () => void
+  setSelectedStation: (station: AirQualityStation | null) => void
 }
 
-export function Sidebar({ lng, lat, zoom, heatmapVisible, selectedStation, toggleHeatmap }: SidebarProps) {
+export function Sidebar({ lng, lat, zoom, selectedStation, setSelectedStation }: SidebarProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [activeLayer, setActiveLayer] = useState("air-quality")
 
@@ -39,8 +38,6 @@ export function Sidebar({ lng, lat, zoom, heatmapVisible, selectedStation, toggl
           <MapControls
             activeLayer={activeLayer}
             setActiveLayer={setActiveLayer}
-            heatmapVisible={heatmapVisible}
-            toggleHeatmap={toggleHeatmap}
           />
 
           <MetricsGrid />
