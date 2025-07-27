@@ -1,7 +1,7 @@
 package com.airquality.backend.application.port.in;
 
-import com.airquality.backend.application.domain.model.LocationData;
+import com.airquality.backend.application.domain.model.MonitoringStation;
 
 public interface ProcessAirQualityDataUseCase {
-    void processAirQualityData(LocationData locationData);
+    void processAirQualityData(MonitoringStation locationData);
 }
