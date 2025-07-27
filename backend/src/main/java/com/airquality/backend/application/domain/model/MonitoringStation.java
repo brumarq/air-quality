@@ -2,18 +2,20 @@ package com.airquality.backend.application.domain.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Sensor {
+public class MonitoringStation {
     private Integer id;
-    private Parameter parameter;
-    private Optional<Measurement> lastMeasurement;
+    private Location location;
+    @Builder.Default
+    private List<Sensor> sensors = new ArrayList<>();
+
 }

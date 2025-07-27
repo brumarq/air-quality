@@ -20,10 +20,10 @@ public enum Parameter {
 
     private final String value;
 
-    public static Parameter fromName(String name) {
+    public static Parameter fromValue(String value) {
         return Arrays.stream(values())
-                .filter(parameter -> parameter.getValue().equals(name))
+                .filter(parameter -> parameter.getValue().equals(value))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Unknown parameter: " + name));
+                .orElseThrow(() -> new IllegalArgumentException("Unknown parameter: " + value));
     }
 }
