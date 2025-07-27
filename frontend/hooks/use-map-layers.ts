@@ -16,9 +16,7 @@ interface UseMapLayersProps {
  * Handles boundary layers and station markers
  */
 export function useMapLayers({ map, mapLoaded, stations }: UseMapLayersProps) {
-  // Track layer IDs for cleanup and management
-  const pulseMarkerLayerId = useRef("pulse-markers")
-  const glowCircleLayerId = useRef("glow-circles")
+  // Track layer initialization
   const layersInitialized = useRef(false)
 
   // Initialize base layers when map is ready
@@ -30,13 +28,7 @@ export function useMapLayers({ map, mapLoaded, stations }: UseMapLayersProps) {
       addLuxembourgBoundary(map)
 
       // Add air quality station markers
-      addAirQualityLayers(
-        map, 
-        stations, 
-        false, // No heatmap
-        glowCircleLayerId.current, 
-        pulseMarkerLayerId.current
-      )
+      addAirQualityLayers(map, stations)
 
       layersInitialized.current = true
     } catch (error) {
