@@ -16,25 +16,13 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class SensorEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    
     @Column(name = "sensor_id")
-    private Integer sensorId;
+    private Integer id;
     
     @Column(name = "parameter", nullable = false)
     private String parameter;
     
-    @Column(name = "unit")
-    private String unit;
-    
-    @Column(name = "last_value")
-    private Double lastValue;
-    
-    @Column(name = "last_updated")
-    private LocalDateTime lastUpdated;
-    
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "location_id", nullable = false)
-    private LocationEntity location;
+    @JoinColumn(name = "station_id", nullable = false)
+    private MonitoringStationEntity station;
 }

@@ -28,6 +28,9 @@ public class SensorReadingEntity {
     @Column(name = "timestamp", nullable = false)
     private LocalDateTime timestamp;
     
+    @Column(name = "unit", nullable = false)
+    private String unit;
+    
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sensor_id", nullable = false)
     private SensorEntity sensor;
