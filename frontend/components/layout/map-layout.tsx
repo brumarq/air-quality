@@ -21,7 +21,7 @@ export function MapLayout() {
   }, [])
 
 
-  const { lng, lat, zoom, heatmapVisible, selectedStation, toggleHeatmap } = useMap({
+  const { lng, lat, zoom, selectedStation, setSelectedStation } = useMap({
     stations: airQualityStations,
   })
 
@@ -40,9 +40,8 @@ export function MapLayout() {
         lng={lng}
         lat={lat}
         zoom={zoom}
-        heatmapVisible={heatmapVisible}
         selectedStation={selectedStation}
-        toggleHeatmap={toggleHeatmap}
+        setSelectedStation={setSelectedStation}
       />
       <MapContainer sidebarCollapsed={sidebarCollapsed} />
     </div>
