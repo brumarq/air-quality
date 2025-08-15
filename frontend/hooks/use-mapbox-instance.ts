@@ -97,7 +97,7 @@ export function useMapboxInstance({ initialLng, initialLat, initialZoom }: UseMa
       console.error("Error initializing map:", error)
       setMapError(`Error initializing map: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
-  }, [initialLng, initialLat, initialZoom])
+  }, [initialLng, initialLat, initialZoom, mapContainer.current])
 
   return {
     mapContainer, // Ref to attach to DOM element
