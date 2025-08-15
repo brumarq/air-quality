@@ -54,6 +54,7 @@ export function useMap({
 
   return {
     mapContainer, // Ref for DOM attachment
+    map, // Mapbox instance 
     lng, // Current longitude
     lat, // Current latitude
     zoom, // Current zoom level

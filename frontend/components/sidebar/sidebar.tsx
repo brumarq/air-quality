@@ -15,10 +15,11 @@ interface SidebarProps {
   zoom: number
   selectedStation: AirQualityStation | null
   setSelectedStation: (station: AirQualityStation | null) => void
+  sidebarCollapsed: boolean
+  setSidebarCollapsed: (collapsed: boolean) => void
 }
 
-export function Sidebar({ lng, lat, zoom, selectedStation, setSelectedStation }: SidebarProps) {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+export function Sidebar({ lng, lat, zoom, selectedStation, sidebarCollapsed, setSidebarCollapsed }: SidebarProps) {
   const [activeLayer, setActiveLayer] = useState("air-quality")
 
   const toggleSidebar = () => {

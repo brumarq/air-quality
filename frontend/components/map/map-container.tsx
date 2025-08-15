@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import "mapbox-gl/dist/mapbox-gl.css"
 import { useMap } from "@/hooks/use-map"
+import { useMapResize } from "@/hooks/use-map-resize"
 import { getAirQualityStations } from "@/data/air-quality-stations"
 import { FloatingInfoBox } from "./floating-info-box"
 import { AirQualityStation } from "@/lib/types/air-quality"
@@ -13,7 +14,6 @@ interface MapContainerProps {
 
 export function MapContainer({ sidebarCollapsed }: MapContainerProps) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const [containerReady, setContainerReady] = useState(false)
   const [stations, setStations] = useState<AirQualityStation[]>([])
   const [stationsLoaded, setStationsLoaded] = useState(false)
 
@@ -33,16 +33,13 @@ export function MapContainer({ sidebarCollapsed }: MapContainerProps) {
     fetchStations()
   }, [])
 
-  // Set container ready after mount
-  useEffect(() => {
-    if (containerRef.current) {
-      setContainerReady(true)
-    }
-  }, [])
 
-  const { mapContainer, selectedStation, setSelectedStation, mapLoaded } = useMap({
+  const { mapContainer, map, selectedStation, setSelectedStation, mapLoaded } = useMap({
     stations: stationsLoaded ? stations : [],
   })
+
+  // Use the resize hook to handle map resize when sidebar state changes
+  useMapResize(map, sidebarCollapsed)
 
   // Connect the container ref to the map
   useEffect(() => {

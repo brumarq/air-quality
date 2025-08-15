@@ -42,6 +42,8 @@ export function MapLayout() {
         zoom={zoom}
         selectedStation={selectedStation}
         setSelectedStation={setSelectedStation}
+        sidebarCollapsed={sidebarCollapsed}
+        setSidebarCollapsed={setSidebarCollapsed}
       />
       <MapContainer sidebarCollapsed={sidebarCollapsed} />
     </div>
