@@ -29,7 +29,7 @@ export function Sidebar({ lng, lat, zoom, selectedStation, sidebarCollapsed, set
   return (
     <div
       className={`h-full border-r bg-background flex flex-col transition-all duration-300 ${
-        sidebarCollapsed ? "w-16" : "w-80"
+        sidebarCollapsed ? "w-[75px]" : "w-80"
       }`}
     >
       <SidebarHeader sidebarCollapsed={sidebarCollapsed} toggleSidebar={toggleSidebar} />

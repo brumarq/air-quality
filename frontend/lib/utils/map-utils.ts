@@ -1,4 +1,3 @@
-import type mapboxgl from "mapbox-gl"
 import type { AirQualityStation } from "@/lib/types/air-quality"
 
 // Generate GeoJSON for air quality data
