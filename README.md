@@ -1,7 +1,7 @@
 # Air Quality Monitor
 
 > [!WARNING]  
-> **Hey!** This is just a pet project I built to learn and experiment with technologies like **Kafka**, **Go**, **Domain-Driven Design**, **Hexagonal Architecture**, **Mapbox**, and more. It's not production-ready, just a fun playground for exploring how these pieces fit together.
+> **Hey!** This is just a pet project I built to learn and experiment with technologies like **Kafka**, **Go**, **Domain-Driven Design**, **Hexagonal Architecture**, **Mapbox**, and more. It's not production-ready, there are no tests, just a fun playground for exploring how these pieces fit together.
 
 ---
 
