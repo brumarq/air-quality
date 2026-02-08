@@ -1,6 +1,6 @@
 import { Location, Sensor, SensorReading } from '../types/air-quality'
 
-const API_BASE_URL = 'http://localhost:8081/api/v1/air-quality'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8081/api/v1/air-quality'
 
 export class AirQualityApi {
   
