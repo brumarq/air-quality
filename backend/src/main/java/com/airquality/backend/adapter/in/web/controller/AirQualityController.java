@@ -9,7 +9,10 @@ import com.airquality.backend.application.port.in.GetStationsUseCase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,7 +21,6 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/v1/air-quality")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:3000")
 public class AirQualityController {
 
     private final GetStationsUseCase getStationsUseCase;
@@ -31,7 +33,7 @@ public class AirQualityController {
         List<MonitoringStation> stations = getStationsUseCase.getAllStations();
         List<LocationDto> locationDtos = stations.stream()
                 .map(this::toLocationDto)
-                .collect(Collectors.toList());
+                .toList();
         
         log.info("Found {} locations", locationDtos.size());
         return ResponseEntity.ok(locationDtos);
@@ -44,7 +46,7 @@ public class AirQualityController {
         List<Sensor> sensors = getSensorsUseCase.getSensorsByStationId(locationId);
         List<SensorDto> sensorDtos = sensors.stream()
                 .map(this::toSensorDto)
-                .collect(Collectors.toList());
+                .toList();
         
         log.info("Found {} sensors for location {}", sensorDtos.size(), locationId);
         return ResponseEntity.ok(sensorDtos);
