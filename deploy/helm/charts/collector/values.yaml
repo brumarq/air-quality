@@ -1,0 +1,42 @@
+replicaCount: 1
+
+image:
+  repository: air-quality-collector
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8080
+
+env:
+  SERVER_PORT: "8080"
+  OPENAQ_API_ENDPOINT: "https://api.openaq.org/v3"
+  KAFKA_BROKER: "air-quality-kafka:9092"
+  KAFKA_TOPIC: "sensor-data"
+
+secrets:
+  OPENAQ_API_KEY: ""
+
+resources:
+  requests:
+    memory: "64Mi"
+    cpu: "50m"
+  limits:
+    memory: "128Mi"
+    cpu: "100m"
+
+probes:
+  liveness:
+    path: /health
+    initialDelaySeconds: 10
+    periodSeconds: 10
+  readiness:
+    path: /health
+    initialDelaySeconds: 5
+    periodSeconds: 5
+
+serviceMonitor:
+  enabled: false
+  path: /metrics
+  interval: 15s

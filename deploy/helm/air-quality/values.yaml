@@ -1,0 +1,87 @@
+# --- Global ---
+global:
+  security:
+    allowInsecureImages: true
+
+# --- Backend ---
+backend:
+  replicaCount: 1
+  image:
+    repository: air-quality-backend
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  env:
+    SPRING_DATASOURCE_URL: "jdbc:postgresql://air-quality-postgresql:5432/sensor_db"
+    SPRING_DATASOURCE_USERNAME: "admin"
+    SPRING_KAFKA_BOOTSTRAP_SERVERS: "air-quality-kafka:9092"
+    SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
+  secrets:
+    SPRING_DATASOURCE_PASSWORD: ""
+
+# --- Frontend ---
+frontend:
+  replicaCount: 1
+  image:
+    repository: air-quality-frontend
+    tag: "latest"
+    pullPolicy: IfNotPresent
+
+# --- Collector ---
+collector:
+  replicaCount: 1
+  image:
+    repository: air-quality-collector
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  env:
+    SERVER_PORT: "8080"
+    OPENAQ_API_ENDPOINT: "https://api.openaq.org/v3"
+    KAFKA_BROKER: "air-quality-kafka:9092"
+    KAFKA_TOPIC: "sensor-data"
+  secrets:
+    OPENAQ_API_KEY: ""
+
+# --- PostgreSQL (Bitnami Legacy) ---
+postgresql:
+  enabled: true
+  image:
+    registry: docker.io
+    repository: bitnamilegacy/postgresql
+    tag: "17.6.0-debian-12-r4"
+  auth:
+    database: sensor_db
+    username: admin
+    password: ""
+    postgresPassword: ""
+  primary:
+    persistence:
+      enabled: true
+      size: 1Gi
+
+# --- Kafka (Bitnami Legacy) ---
+kafka:
+  enabled: true
+  image:
+    registry: docker.io
+    repository: bitnamilegacy/kafka
+    tag: "3.9.0-debian-12-r12"
+  listeners:
+    client:
+      protocol: PLAINTEXT
+    interBroker:
+      protocol: PLAINTEXT
+  extraConfig: |
+    offsets.topic.replication.factor=1
+    transaction.state.log.replication.factor=1
+    transaction.state.log.min.isr=1
+  controller:
+    replicaCount: 1
+    persistence:
+      enabled: true
+      size: 1Gi
+
+# --- Ingress ---
+ingress:
+  enabled: true
+  className: nginx
+  host: air-quality.local

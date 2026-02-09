@@ -1,0 +1,4 @@
+apiVersion: v2
+name: collector
+description: Air Quality Data Collector (Go)
+version: 0.1.0

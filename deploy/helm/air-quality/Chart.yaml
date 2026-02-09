@@ -1,0 +1,25 @@
+apiVersion: v2
+name: air-quality
+description: Air Quality Monitoring System
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+
+dependencies:
+  - name: backend
+    version: "0.1.0"
+    repository: "file://../charts/backend"
+  - name: frontend
+    version: "0.1.0"
+    repository: "file://../charts/frontend"
+  - name: collector
+    version: "0.1.0"
+    repository: "file://../charts/collector"
+  - name: postgresql
+    version: "18.2.4"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: postgresql.enabled
+  - name: kafka
+    version: "31.x.x"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: kafka.enabled
