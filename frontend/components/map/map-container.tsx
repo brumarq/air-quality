@@ -1,6 +1,5 @@
 "use client"
 
-import { useEffect, useRef } from "react"
 import "mapbox-gl/dist/mapbox-gl.css"
 import { useMapResize } from "@/hooks/use-map-resize"
 import { FloatingInfoBox } from "./floating-info-box"
@@ -15,31 +14,22 @@ interface MapContainerProps {
   setSelectedStation: (station: AirQualityStation | null) => void
 }
 
-export function MapContainer({ 
-  sidebarCollapsed, 
-  mapContainer, 
-  map, 
-  mapLoaded, 
-  selectedStation, 
-  setSelectedStation 
+export function MapContainer({
+  sidebarCollapsed,
+  mapContainer,
+  map,
+  mapLoaded,
+  selectedStation,
+  setSelectedStation
 }: MapContainerProps) {
-  const containerRef = useRef<HTMLDivElement>(null)
-
   // Use the resize hook to handle map resize when sidebar state changes
   useMapResize(map, sidebarCollapsed)
-
-  // Connect the container ref to the map
-  useEffect(() => {
-    if (containerRef.current && mapContainer) {
-      mapContainer.current = containerRef.current
-    }
-  }, [mapContainer])
 
   return (
     <div className="relative flex-1 h-full">
       {/* Map container */}
       <div
-        ref={containerRef}
+        ref={mapContainer}
         className="absolute inset-0 w-full h-full"
         style={{
           minHeight: "100%",
