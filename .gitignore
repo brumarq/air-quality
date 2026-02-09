@@ -5,3 +5,6 @@
 
 # Helm values with secrets
 deploy/values/local.yaml
+
+# Helm dependency archives
+deploy/helm/air-quality/charts/*.tgz
