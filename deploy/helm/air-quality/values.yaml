@@ -41,6 +41,10 @@ collector:
   secrets:
     OPENAQ_API_KEY: ""
 
+# 
+# Currently usig Bitnami Legacy, but this
+# needs to be updated to something else, works for now
+# 
 # --- PostgreSQL (Bitnami Legacy) ---
 postgresql:
   enabled: true
@@ -70,12 +74,8 @@ kafka:
       protocol: PLAINTEXT
     interBroker:
       protocol: PLAINTEXT
-  extraConfig: |
-    offsets.topic.replication.factor=1
-    transaction.state.log.replication.factor=1
-    transaction.state.log.min.isr=1
   controller:
-    replicaCount: 1
+    replicaCount: 3 # Kafka expects 3 brokers
     persistence:
       enabled: true
       size: 1Gi
