@@ -1,0 +1,4 @@
+apiVersion: v2
+name: backend
+description: Air Quality Backend (Spring Boot)
+version: 0.1.0

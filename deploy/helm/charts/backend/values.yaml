@@ -1,0 +1,42 @@
+replicaCount: 1
+
+image:
+  repository: air-quality-backend
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8081
+
+env:
+  SPRING_DATASOURCE_URL: "jdbc:postgresql://air-quality-postgresql:5432/sensor_db"
+  SPRING_DATASOURCE_USERNAME: "admin"
+  SPRING_KAFKA_BOOTSTRAP_SERVERS: "air-quality-kafka:9092"
+  SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
+
+secrets:
+  SPRING_DATASOURCE_PASSWORD: ""
+
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "250m"
+  limits:
+    memory: "1Gi"
+    cpu: "500m"
+
+probes:
+  liveness:
+    path: /actuator/health/liveness
+    initialDelaySeconds: 30
+    periodSeconds: 10
+  readiness:
+    path: /actuator/health/readiness
+    initialDelaySeconds: 20
+    periodSeconds: 5
+
+serviceMonitor:
+  enabled: false
+  path: /actuator/prometheus
+  interval: 15s

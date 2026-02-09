@@ -1,0 +1,32 @@
+# Copy this file to local.yaml and fill in the secret values
+# DO NOT commit local.yaml to Git
+
+backend:
+  image:
+    pullPolicy: Never
+  secrets:
+    SPRING_DATASOURCE_PASSWORD: "<your-db-password>"
+
+frontend:
+  image:
+    pullPolicy: Never
+
+collector:
+  image:
+    pullPolicy: Never
+  secrets:
+    OPENAQ_API_KEY: "<your-openaq-api-key>"
+
+postgresql:
+  auth:
+    password: "<your-db-password>"
+    postgresPassword: "<your-db-password>"
+  primary:
+    persistence:
+      size: 500Mi
+
+kafka:
+  controller:
+    replicaCount: 1
+  persistence:
+    size: 500Mi

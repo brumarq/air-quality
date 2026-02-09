@@ -1,0 +1,7 @@
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Helm values with secrets
+deploy/values/local.yaml
