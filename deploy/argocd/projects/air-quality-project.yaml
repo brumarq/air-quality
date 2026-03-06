@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: air-quality
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: Project about tracking air quality
+  sourceRepos:
+  - 'https://github.com/brumarq/air-quality'
+  - 'https://charts.bitnami.com/bitnami'
+  - 'https://kubernetes.github.io/ingress-nginx'
+  destinations:
+  - namespace: air-quality
+    server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+  - group: ''
+    kind: Namespace

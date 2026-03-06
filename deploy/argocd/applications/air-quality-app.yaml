@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: air-quality
+  namespace: argocd
+spec:
+  project: air-quality
+  source:
+    repoURL: https://github.com/brumarq/air-quality
+    targetRevision: main
+    path: deploy/helm/air-quality
+    helm: 
+      valueFiles:
+        - ../../values/local.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: air-quality
+  syncPolicy:
+    automated:
+       prune: true
+       selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

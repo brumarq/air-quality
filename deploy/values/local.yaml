@@ -1,0 +1,25 @@
+# Local minikube values
+# Secrets are managed manually via kubectl
+
+backend:
+  image:
+    pullPolicy: Never
+
+frontend:
+  image:
+    pullPolicy: Never
+
+collector:
+  image:
+    pullPolicy: Never
+
+postgresql:
+  primary:
+    persistence:
+      size: 500Mi
+
+kafka:
+  controller:
+    replicaCount: 1
+    persistence:
+      size: 500Mi
