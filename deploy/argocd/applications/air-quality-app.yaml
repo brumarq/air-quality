@@ -9,7 +9,7 @@ spec:
     repoURL: https://github.com/brumarq/air-quality
     targetRevision: main
     path: deploy/helm/air-quality
-    helm: 
+    helm:
       valueFiles:
         - ../../values/local.yaml
   destination:
@@ -21,3 +21,14 @@ spec:
        selfHeal: true
     syncOptions:
       - CreateNamespace=true
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      name: air-quality-backend
+      jsonPointers:
+        - /data
+    - group: ""
+      kind: Secret
+      name: air-quality-collector
+      jsonPointers:
+        - /data
