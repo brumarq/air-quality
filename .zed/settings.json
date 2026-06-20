@@ -1,0 +1,89 @@
+{
+  "features": {
+    "edit_prediction_provider": "none"
+  },
+  "file_scan_exclusions": [
+    "**/.git",
+    "**/.gradle",
+    "**/build",
+    "**/bin",
+    "**/node_modules",
+    "**/.next",
+    "**/.turbo",
+    "**/pnpm-lock.yaml"
+  ],
+  "languages": {
+    "TypeScript": {
+      "tab_size": 2,
+      "formatter": "language_server"
+    },
+    "TSX": {
+      "tab_size": 2,
+      "formatter": "language_server"
+    },
+    "JavaScript": {
+      "tab_size": 2
+    },
+    "JSX": {
+      "tab_size": 2
+    },
+    "Java": {
+      "tab_size": 4,
+      "formatter": "language_server"
+    },
+    "Go": {
+      "tab_size": 4,
+      "formatter": "language_server"
+    },
+    "YAML": {
+      "tab_size": 2
+    },
+    "Dockerfile": {
+      "tab_size": 2
+    }
+  },
+  "lsp": {
+    "jdtls": {
+      "settings": {
+        "java": {
+          "home": "/home/brumarq/.local/share/mise/installs/java/26.0.1",
+          "configuration": {
+            "runtimes": [
+              {
+                "name": "JavaSE-26",
+                "path": "/home/brumarq/.local/share/mise/installs/java/26.0.1",
+                "default": true
+              }
+            ]
+          },
+          "import": {
+            "gradle": {
+              "enabled": true,
+              "wrapper": {
+                "enabled": true
+              }
+            }
+          },
+          "compile": {
+            "nullAnalysis": {
+              "mode": "automatic"
+            }
+          },
+          "format": {
+            "enabled": true
+          }
+        }
+      }
+    },
+    "gopls": {
+      "initialization_options": {
+        "hints": {
+          "parameterNames": true,
+          "assignVariableTypes": true,
+          "functionTypeParameters": true,
+          "rangeVariableTypes": true
+        }
+      }
+    }
+  }
+}
