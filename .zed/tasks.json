@@ -1,0 +1,37 @@
+[
+  {
+    "label": "Frontend: dev",
+    "command": "npm run dev",
+    "cwd": "$ZED_WORKTREE_ROOT/frontend"
+  },
+  {
+    "label": "Backend: run",
+    "command": "./gradlew bootRun",
+    "cwd": "$ZED_WORKTREE_ROOT/backend"
+  },
+  {
+    "label": "Backend: test",
+    "command": "./gradlew test",
+    "cwd": "$ZED_WORKTREE_ROOT/backend"
+  },
+  {
+    "label": "Backend: test current file",
+    "command": "./gradlew test --tests *.$ZED_STEM",
+    "cwd": "$ZED_WORKTREE_ROOT/backend"
+  },
+  {
+    "label": "Backend: build",
+    "command": "./gradlew build",
+    "cwd": "$ZED_WORKTREE_ROOT/backend"
+  },
+  {
+    "label": "Collector: run",
+    "command": "go run ./cmd/main.go",
+    "cwd": "$ZED_WORKTREE_ROOT/openaq-collector"
+  },
+  {
+    "label": "Collector: test",
+    "command": "go test ./...",
+    "cwd": "$ZED_WORKTREE_ROOT/openaq-collector"
+  }
+]
