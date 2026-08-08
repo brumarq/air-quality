@@ -59,6 +59,61 @@ A real-time air quality monitoring system that:
 
 ---
 
+## Running It Locally (Kubernetes)
+
+Everything runs on [minikube](https://minikube.sigs.k8s.io/), deployed via Helm. You'll need Docker, `minikube`, `kubectl`, and `helm` installed (e.g. `pacman -S minikube kubectl helm` on Arch, `brew install minikube kubectl helm` on macOS).
+
+### 1. Get your secrets and fill in local values
+- Mapbox token: https://account.mapbox.com/access-tokens/
+- OpenAQ API key: https://explore.openaq.org/account
+
+```bash
+cp deploy/values/local.yaml.example deploy/values/local.yaml
+```
+Edit `deploy/values/local.yaml` and fill in a DB password and your `OPENAQ_API_KEY`. This file is gitignored — never committed.
+
+### 2. Start minikube
+```bash
+minikube start --driver=docker --cpus=4 --memory=6g
+minikube addons enable ingress
+```
+
+### 3. Build the images into minikube's Docker daemon
+```bash
+eval $(minikube docker-env)
+
+docker build -t air-quality-backend:latest ./backend
+
+docker build -t air-quality-frontend:latest \
+  --build-arg NEXT_PUBLIC_API_BASE_URL=/api/v1/air-quality \
+  --build-arg NEXT_PUBLIC_MAPBOX_TOKEN=<your-mapbox-token> \
+  ./frontend
+
+docker build -t air-quality-collector:latest ./openaq-collector
+```
+
+### 4. Deploy with Helm
+```bash
+helm repo add bitnami https://charts.bitnami.com/bitnami
+
+cd deploy/helm/air-quality
+helm dependency build
+helm install air-quality . -f ../../values/local.yaml -n air-quality --create-namespace
+```
+
+### 5. Point your hosts file at the cluster
+```bash
+echo "$(minikube ip) air-quality.test" | sudo tee -a /etc/hosts
+```
+
+### 6. Verify
+```bash
+kubectl get pods -n air-quality -w
+curl http://air-quality.test/api/v1/air-quality/locations
+```
+Then open `http://air-quality.test` in a browser. Note the collector polls OpenAQ every 2 minutes, so the map may take a moment to populate on first boot.
+---
+
 ## Tech Stack
 
 | Component | Tech |
