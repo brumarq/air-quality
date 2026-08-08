@@ -84,4 +84,4 @@ kafka:
 ingress:
   enabled: true
   className: nginx
-  host: air-quality.local
+  host: air-quality.test
