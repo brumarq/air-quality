@@ -55,7 +55,6 @@ export function MapLayout({communeConfig}: MapLayoutProps) {
           setSelectedStation={setSelectedStation}
           sidebarCollapsed={sidebarCollapsed}
           setSidebarCollapsed={setSidebarCollapsed}
-          stations={stations}
           communeConfig={communeConfig}
         />
         <MapContainer

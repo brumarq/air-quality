@@ -1,13 +1,14 @@
-import type { AirQualityStation } from "@/lib/types/air-quality"
 import type { PollutantLimit } from "@/lib/constants/air-quality-limits"
+import type { StationHistory } from "@/hooks/use-sensor-history"
 import { StationLimitBar } from "./station-limit-bar"
 
 interface PollutantSectionProps {
-  stations: AirQualityStation[]
+  history: StationHistory[]
   limit: PollutantLimit
+  live: boolean
 }
 
-export function PollutantSection({ stations, limit }: PollutantSectionProps) {
+export function PollutantSection({ history, limit, live }: PollutantSectionProps) {
   return (
     <div className="py-3 border-t first:border-t-0 first:pt-0">
       <div className="flex justify-between items-baseline mb-1">
@@ -19,13 +20,8 @@ export function PollutantSection({ stations, limit }: PollutantSectionProps) {
         </span>
       </div>
       <div className="divide-y">
-        {stations.map((station) => (
-          <StationLimitBar
-            key={station.id}
-            station={station}
-            limit={limit}
-            sensor={station.sensors?.find((s) => s.parameter === limit.parameter)}
-          />
+        {history.map(({ station, points }) => (
+          <StationLimitBar key={station.id} station={station} points={points} limit={limit} live={live} />
         ))}
       </div>
     </div>
