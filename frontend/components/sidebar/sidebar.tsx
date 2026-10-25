@@ -1,11 +1,13 @@
 "use client"
 
-import { useState } from "react"
 import type { AirQualityStation } from "@/lib/types/air-quality"
+import type { CommuneConfig } from "@/data/communes"
 import { SidebarHeader } from "./sidebar-header"
 import { MapControls } from "./map-controls"
 import { MetricsGrid } from "./metrics-grid"
 import { StationCard } from "./station-card"
+import { CommuneStations } from "./commune-stations"
+import { CommuneSources } from "./commune-sources"
 import { Legend } from "./legend"
 import { SidebarFooter } from "./sidebar-footer"
 
@@ -17,11 +19,20 @@ interface SidebarProps {
   setSelectedStation: (station: AirQualityStation | null) => void
   sidebarCollapsed: boolean
   setSidebarCollapsed: (collapsed: boolean) => void
+  stations: AirQualityStation[]
+  communeConfig?: CommuneConfig
 }
 
-export function Sidebar({ lng, lat, zoom, selectedStation, sidebarCollapsed, setSidebarCollapsed }: SidebarProps) {
-  const [activeLayer, setActiveLayer] = useState("air-quality")
-
+export function Sidebar({
+  lng,
+  lat,
+  zoom,
+  selectedStation,
+  sidebarCollapsed,
+  setSidebarCollapsed,
+  stations,
+  communeConfig,
+}: SidebarProps) {
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed)
   }
@@ -36,12 +47,16 @@ export function Sidebar({ lng, lat, zoom, selectedStation, sidebarCollapsed, set
 
       {!sidebarCollapsed && (
         <>
-          <MapControls
-            activeLayer={activeLayer}
-            setActiveLayer={setActiveLayer}
-          />
+          <MapControls />
 
-          <MetricsGrid />
+          {communeConfig ? (
+            <>
+              <CommuneStations stations={stations} />
+              <CommuneSources />
+            </>
+          ) : (
+            <MetricsGrid />
+          )}
 
           {selectedStation && (
             <div className="p-5 border-b">

@@ -3,7 +3,10 @@
 import "mapbox-gl/dist/mapbox-gl.css"
 import { useMapResize } from "@/hooks/use-map-resize"
 import { FloatingInfoBox } from "./floating-info-box"
+import { CommuneHeaderCard } from "@/components/communes/commune-header-card"
+import { CommuneReadingsPanel } from "@/components/communes/commune-readings-panel"
 import { AirQualityStation } from "@/lib/types/air-quality"
+import type { CommuneConfig } from "@/data/communes"
 
 interface MapContainerProps {
   sidebarCollapsed: boolean
@@ -12,6 +15,8 @@ interface MapContainerProps {
   mapLoaded: boolean
   selectedStation: AirQualityStation | null
   setSelectedStation: (station: AirQualityStation | null) => void
+  stations: AirQualityStation[]
+  communeConfig?: CommuneConfig
 }
 
 export function MapContainer({
@@ -20,7 +25,9 @@ export function MapContainer({
   map,
   mapLoaded,
   selectedStation,
-  setSelectedStation
+  setSelectedStation,
+  stations,
+  communeConfig
 }: MapContainerProps) {
   // Use the resize hook to handle map resize when sidebar state changes
   useMapResize(map, sidebarCollapsed)
@@ -51,6 +58,14 @@ export function MapContainer({
       {/* Floating info box for selected station */}
       {selectedStation && (
         <FloatingInfoBox station={selectedStation} onClose={() => setSelectedStation(null)} />
+      )}
+
+      {/* Commune header + readings panel, always visible on a commune page */}
+      {communeConfig && (
+        <div className="absolute top-5 left-5 z-10 flex flex-col gap-4">
+          <CommuneHeaderCard communeConfig={communeConfig} />
+          <CommuneReadingsPanel stations={stations} />
+        </div>
       )}
     </div>
   )
