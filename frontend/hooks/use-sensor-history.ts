@@ -21,6 +21,12 @@ export function useSensorHistory(
 ): StationHistory[] | null {
   const [history, setHistory] = useState<StationHistory[] | null>(null)
 
+  // Depend on primitives derived from stations/limit rather than their object/array
+  // identity - a parent re-render that happens to pass a structurally-equal but newly
+  // created array/object must not look like a real change and re-trigger this fetch
+  // (this exact bug has bitten this hook before: "Maximum update depth exceeded").
+  const stationsKey = stations.map((s) => s.id).join(",")
+
   useEffect(() => {
     let cancelled = false
     setHistory(null)
@@ -45,7 +51,8 @@ export function useSensorHistory(
     return () => {
       cancelled = true
     }
-  }, [stations, limit, days])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stationsKey, limit.parameter, days])
 
   return history
 }

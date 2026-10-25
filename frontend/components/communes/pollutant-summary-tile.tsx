@@ -16,7 +16,7 @@ export function PollutantSummaryTile({ limit, selected, onSelect }: PollutantSum
       }`}
     >
       <div className="text-sm font-semibold">{limit.label}</div>
-      <div className="text-xs text-muted-foreground mt-0.5">{limit.unit}</div>
+      <div className="text-xs text-muted-foreground mt-1">{limit.unit}</div>
     </button>
   )
 }

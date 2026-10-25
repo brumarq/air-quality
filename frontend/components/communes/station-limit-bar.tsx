@@ -1,63 +1,69 @@
-"use client"
-
-import { Bar, BarChart, ReferenceLine, ResponsiveContainer, XAxis, YAxis } from "recharts"
 import type { AirQualityStation, SensorReadingHistoryPoint } from "@/lib/types/air-quality"
-import { LIMIT_STATUS_COLOR, getLimitStatus, type PollutantLimit } from "@/lib/constants/air-quality-limits"
+import { LIMIT_STATUS_COLOR, LIMIT_TODAY_COLOR, LIMIT_2030_COLOR, getLimitStatus, type PollutantLimit } from "@/lib/constants/air-quality-limits"
 
 interface StationLimitBarProps {
   station: AirQualityStation
+  color: string
   points: SensorReadingHistoryPoint[]
   limit: PollutantLimit
   live: boolean
 }
 
-export function StationLimitBar({ station, points, limit, live }: StationLimitBarProps) {
+export function StationLimitBar({ station, color, points, limit, live }: StationLimitBarProps) {
   const matching = points.filter((p) => p.unit === limit.unit)
+  const scaleMax = limit.limitToday * 1.25
+  const todayPct = Math.min(100, (limit.limitToday / scaleMax) * 100)
+  const limit2030Pct = Math.min(100, (limit.limit2030 / scaleMax) * 100)
 
   if (matching.length === 0) {
     return (
-      <div className="py-2">
-        <div className="flex justify-between items-baseline mb-1">
-          <span className="text-sm font-medium">{station.name}</span>
+      <div className="flex flex-col gap-1">
+        <div className="flex items-baseline justify-between gap-2">
+          <span className="flex items-center gap-2 min-w-0">
+            <span className="w-4 h-1 rounded-sm opacity-30 -translate-y-1" style={{ background: color }} />
+            <span className="text-sm font-medium">{station.name}</span>
+          </span>
           <span className="text-sm text-muted-foreground">No data</span>
         </div>
-        <div className="h-[10px] rounded bg-muted" />
-        <div className="text-xs text-muted-foreground mt-1">No recent reading for this period</div>
+        <div className="relative h-4">
+          <div className="absolute top-1 left-0 right-0 h-2 rounded bg-[#F0F0F0]" />
+        </div>
+        <span className="text-xs text-muted-foreground">No recent reading for this period</span>
       </div>
     )
   }
 
+  const value = live ? matching[matching.length - 1].value : matching.reduce((sum, p) => sum + p.value, 0) / matching.length
   const latestTimestamp = matching[matching.length - 1].timestamp
-  const value = live
-    ? matching[matching.length - 1].value
-    : matching.reduce((sum, p) => sum + p.value, 0) / matching.length
-  const domainMax = Math.max(limit.limitToday, limit.limit2030, value) * 1.15
+  const pct = Math.min(100, (value / scaleMax) * 100)
   const status = getLimitStatus(value, limit)
 
   return (
-    <div className="py-2">
-      <div className="flex justify-between items-baseline mb-1">
-        <span className="text-sm font-medium">{station.name}</span>
-        <span className="text-sm font-semibold">{value.toFixed(1)}</span>
+    <div className="flex flex-col gap-1">
+      <div className="flex items-baseline justify-between gap-2">
+        <span className="flex items-center gap-2 min-w-0">
+          <span className="w-4 h-1 rounded-sm -translate-y-1" style={{ background: color }} />
+          <span className="text-sm font-medium">{station.name}</span>
+        </span>
+        <span className="text-lg font-semibold tabular-nums">{value.toFixed(1)}</span>
       </div>
-      <ResponsiveContainer width="100%" height={16}>
-        <BarChart
-          layout="vertical"
-          data={[{ name: limit.parameter, value }]}
-          margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
-        >
-          <XAxis type="number" domain={[0, domainMax]} hide />
-          <YAxis type="category" dataKey="name" hide />
-          <Bar dataKey="value" fill={LIMIT_STATUS_COLOR[status]} radius={2} barSize={10} />
-          <ReferenceLine x={limit.limitToday} stroke="hsl(var(--muted-foreground))" strokeWidth={2} />
-          <ReferenceLine x={limit.limit2030} stroke="hsl(var(--destructive))" strokeWidth={2} />
-        </BarChart>
-      </ResponsiveContainer>
-      <div className="text-[11px] text-muted-foreground mt-1">
+      <div className="relative h-4">
+        <div className="absolute top-1 left-0 right-0 h-2 rounded bg-[#F0F0F0]" />
+        <div
+          className="absolute top-1 left-0 h-2 rounded"
+          style={{ width: `${pct}%`, background: LIMIT_STATUS_COLOR[status] }}
+        />
+        <div
+          className="absolute top-0 h-4 w-1 -ml-px"
+          style={{ left: `${limit2030Pct}%`, background: LIMIT_2030_COLOR }}
+        />
+        <div className="absolute top-0 h-4 w-1 -ml-px" style={{ left: `${todayPct}%`, background: LIMIT_TODAY_COLOR }} />
+      </div>
+      <span className="text-xs text-muted-foreground">
         {live
           ? `Latest reading · ${new Date(latestTimestamp).toLocaleString()}`
           : `Average of ${matching.length} reading${matching.length === 1 ? "" : "s"} · latest ${new Date(latestTimestamp).toLocaleString()}`}
-      </div>
+      </span>
     </div>
   )
 }

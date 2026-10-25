@@ -1,6 +1,7 @@
 'use client'
 
 import dynamic from "next/dynamic"
+import { LUXEMBOURG_AREA } from "@/data/communes"
 
 // Dynamically import the MapLayout component with no SSR
 const MapLayout = dynamic(() => import("@/components/layout/map-layout").then((mod) => mod.MapLayout), {
@@ -13,6 +14,5 @@ const MapLayout = dynamic(() => import("@/components/layout/map-layout").then((m
 })
 
 export default function Home() {
-  return <MapLayout />
+  return <MapLayout communeConfig={LUXEMBOURG_AREA} />
 }
-

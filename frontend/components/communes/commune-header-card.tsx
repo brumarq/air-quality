@@ -1,48 +1,120 @@
+"use client"
+
+import Link from "next/link"
+import { ChevronDown, Map, MapPin } from "lucide-react"
 import type { CommuneConfig } from "@/data/communes"
+import { communes } from "@/data/communes"
 import { TIME_RANGES } from "@/lib/constants/time-ranges"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { Card, CardContent } from "@/components/ui/card"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+
+export type AreaMode = "air" | "heat"
 
 interface CommuneHeaderCardProps {
   communeConfig: CommuneConfig
+  mode: AreaMode
+  onSelectMode: (mode: AreaMode) => void
   selectedRangeKey: string
   onSelectRange: (key: string) => void
 }
 
-export function CommuneHeaderCard({ communeConfig, selectedRangeKey, onSelectRange }: CommuneHeaderCardProps) {
+export function CommuneHeaderCard({
+  communeConfig,
+  mode,
+  onSelectMode,
+  selectedRangeKey,
+  onSelectRange,
+}: CommuneHeaderCardProps) {
   return (
-    <Card className="w-96 shadow-lg">
-      <CardHeader className="pb-2">
-        <div className="flex items-center gap-2">
-          <h2 className="text-xl font-semibold">{communeConfig.name}</h2>
+    <Card className="pointer-events-auto w-96 shadow-lg">
+      <CardContent className="p-4 flex flex-col gap-4">
+        <div className="flex items-center justify-between gap-2">
+          <span className="flex items-center gap-2 text-sm">
+            <span className="text-teal-500" aria-hidden="true">
+              ◎
+            </span>
+            <span className="font-semibold">LuxAir</span>
+            <span className="text-neutral-300" aria-hidden="true">
+              /
+            </span>
+            <span className="text-muted-foreground">{communeConfig.slug ? "Commune profile" : "National overview"}</span>
+          </span>
           <Badge variant="outline">Draft</Badge>
         </div>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm text-muted-foreground">
-          How the commune&apos;s air compares with EU limits, and where it gets hottest in summer. Public open data,
-          not endorsed by any commune.
-        </p>
 
-        <div className="flex gap-1 mt-3">
-          {TIME_RANGES.map((range) => (
-            <Button
-              key={range.key}
-              size="sm"
-              variant={range.key === selectedRangeKey ? "secondary" : "ghost"}
-              className="flex-1"
-              onClick={() => onSelectRange(range.key)}
+        <div className="flex flex-col gap-1">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button type="button" className="flex items-center gap-2 text-xl font-semibold leading-none">
+                {communeConfig.name}
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="min-w-64">
+              <DropdownMenuItem asChild disabled={!communeConfig.slug}>
+                <Link href="/" className="flex items-center gap-3">
+                  <Map className="h-4 w-4" />
+                  <span className="flex-1">Luxembourg</span>
+                  <span className="text-xs text-muted-foreground">All 9 stations</span>
+                </Link>
+              </DropdownMenuItem>
+              {communes.map((commune) => (
+                <DropdownMenuItem key={commune.slug} asChild disabled={commune.slug === communeConfig.slug}>
+                  <Link href={`/communes/${commune.slug}`} className="flex items-center gap-3 font-medium">
+                    <MapPin className="h-4 w-4" />
+                    <span className="flex-1">{commune.name}</span>
+                  </Link>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <p className="text-sm text-muted-foreground">
+            {communeConfig.stationIds.length} reference stations · air quality against EU limits, and summer heat
+          </p>
+        </div>
+
+        <ToggleGroup
+          type="single"
+          value={mode}
+          onValueChange={(value) => value && onSelectMode(value as AreaMode)}
+          className="bg-muted rounded-lg p-1 gap-1"
+        >
+          <ToggleGroupItem value="air" className="flex-1 h-8 text-sm data-[state=on]:bg-background data-[state=on]:shadow-sm">
+            Air quality
+          </ToggleGroupItem>
+          <ToggleGroupItem value="heat" className="flex-1 h-8 text-sm data-[state=on]:bg-background data-[state=on]:shadow-sm">
+            Summer heat
+          </ToggleGroupItem>
+        </ToggleGroup>
+
+        {mode === "air" && (
+          <div className="flex flex-col gap-2 pt-4 border-t">
+            <span className="text-xs font-semibold uppercase text-muted-foreground">Period</span>
+            <ToggleGroup
+              type="single"
+              value={selectedRangeKey}
+              onValueChange={(value) => value && onSelectRange(value)}
+              className="bg-muted rounded-lg p-1 gap-1 grid grid-cols-5"
             >
-              {range.label}
-            </Button>
-          ))}
-        </div>
-
-        <div className="text-xs text-muted-foreground mt-3 pt-3 border-t space-y-0.5">
-          <div>Readings: OpenAQ, EEA reference-grade stations</div>
-          <div>Limits: EU Directives 2008/50/EC (today) and 2024/2881 (2030)</div>
-        </div>
+              {TIME_RANGES.map((range) => (
+                <ToggleGroupItem
+                  key={range.key}
+                  value={range.key}
+                  className="h-8 px-1 text-sm data-[state=on]:bg-background data-[state=on]:shadow-sm"
+                >
+                  {range.label}
+                </ToggleGroupItem>
+              ))}
+            </ToggleGroup>
+          </div>
+        )}
       </CardContent>
     </Card>
   )
