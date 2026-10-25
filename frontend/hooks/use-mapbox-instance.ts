@@ -28,7 +28,7 @@ export function useMapboxInstance({ initialLng, initialLat, initialZoom }: UseMa
     try {
       map.current = new mapboxgl.Map({
         container: node,
-        style: "mapbox://styles/mapbox/light-v11",
+        style: "mapbox://styles/mapbox/standard",
         center: [initialLng, initialLat],
         zoom: initialZoom,
         attributionControl: false,
@@ -46,7 +46,6 @@ export function useMapboxInstance({ initialLng, initialLat, initialZoom }: UseMa
           new mapboxgl.NavigationControl({ showCompass: false, visualizePitch: false }),
           "bottom-right",
         )
-        map.current.addControl(new mapboxgl.FullscreenControl(), "top-right")
       })
 
       map.current.on("load", () => {
