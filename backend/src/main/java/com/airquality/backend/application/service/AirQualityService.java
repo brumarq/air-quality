@@ -3,6 +3,7 @@ package com.airquality.backend.application.service;
 import com.airquality.backend.application.domain.model.Measurement;
 import com.airquality.backend.application.domain.model.MonitoringStation;
 import com.airquality.backend.application.domain.model.Sensor;
+import com.airquality.backend.application.port.in.GetSensorReadingHistoryUseCase;
 import com.airquality.backend.application.port.in.GetSensorsUseCase;
 import com.airquality.backend.application.port.in.GetStationsUseCase;
 import com.airquality.backend.application.port.in.ProcessAirQualityDataUseCase;
@@ -13,13 +14,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class AirQualityService implements ProcessAirQualityDataUseCase, GetStationsUseCase, GetSensorsUseCase {
+public class AirQualityService implements ProcessAirQualityDataUseCase, GetStationsUseCase, GetSensorsUseCase, GetSensorReadingHistoryUseCase {
 
     private final MonitoringStationRepository stationRepository;
     private final SensorRepository sensorRepository;
@@ -35,6 +37,12 @@ public class AirQualityService implements ProcessAirQualityDataUseCase, GetStati
     public List<Sensor> getSensorsByStationId(Integer stationId) {
         log.info("Retrieving sensors for station {}", stationId);
         return sensorRepository.findByStationId(stationId);
+    }
+
+    @Override
+    public List<Measurement> getSensorReadingHistory(Integer sensorId, LocalDateTime from, LocalDateTime to) {
+        log.info("Retrieving reading history for sensor {} from {} to {}", sensorId, from, to);
+        return sensorReadingRepository.getSensorReadingHistory(sensorId, from, to);
     }
 
     /**
@@ -62,7 +70,7 @@ public class AirQualityService implements ProcessAirQualityDataUseCase, GetStati
             throw e;
         }
     }
-    
+
     /**
      * Processes monitoring station entity independently.
      * Creates new station if it doesn't exist, otherwise returns existing station ID.
