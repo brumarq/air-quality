@@ -24,6 +24,12 @@ export interface SensorReading {
   sensor: Sensor
 }
 
+export interface SensorReadingHistoryPoint {
+  timestamp: string
+  value: number
+  unit: string
+}
+
 export interface AirQualityStation {
   id: string
   name: string
