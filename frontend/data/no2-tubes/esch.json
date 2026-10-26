@@ -1,0 +1,94 @@
+{
+  "commune": "esch-sur-alzette",
+  "pollutant": "no2",
+  "unit": "µg/m³",
+  "limitToday": 40,
+  "limit2030": 20,
+  "method": "Passive diffusion tubes, Pacte Climat NO2 measurement campaign (AEV + communes + Klima-Agence). Values are the uncertainty-corrected annual mean. Where a location had two parallel tubes in a given year, the value here is their average.",
+  "sources": {
+    "2018": { "title": "Rapport final 2018", "url": "https://environnement.public.lu/content/dam/environnement/documents/air/Surveillance-evaluation-air/campagnes-mesure-speciale/no2-communes/Rapport-final-2018.pdf", "page": 9 },
+    "2019": { "title": "Rapport NO2 PacteClimat 2019 Final", "url": "https://environnement.public.lu/dam-assets/documents/air/plans-strategies/Rapport-NO2-PacteClimat-2019Final.pdf", "page": 9 },
+    "2020": { "title": "2020 NO2 PacteClimat 2020 AEV", "url": "https://download.data.public.lu/resources/air-quality-no2-measurement-by-passive-tubes/20250403-154607/2020-no2-pacteclimat-2020-aev.pdf", "page": 8 },
+    "2021": { "title": "Rapport NO2 PacteClimat 2021", "url": "https://environnement.public.lu/dam-assets/documents/air/Surveillance-evaluation-air/campagnes-mesure-speciale/no2-communes/rapport-no2-pacteclimat-2021.pdf", "page": 9 },
+    "2022": { "title": "Rapport NO2 PacteClimat 2022", "url": "https://aev.gouvernement.lu/dam-assets/documents/rapport-no2-pacteclimat-2022.pdf", "page": 9 },
+    "2023": { "title": "Rapport NO2 PacteClimat 2023", "url": "https://gouvernement.lu/dam-assets/documents/actualites/2024/06/11-qualite-air/rapport-no2-pacteclimat-2023.pdf", "page": 9 },
+    "2024": { "title": "Rapport NO2 PacteClimat 2024", "url": "https://environnement.public.lu/content/dam/environnement/documents/publications/2025/rapport-no2-pacteclimat-2024.pdf", "page": 11 },
+    "2025": { "title": "Rapport NO2 PacteClimat 2025", "url": "https://download.data.public.lu/resources/air-quality-mesurage-no2-par-tubes-passifs-pacte-climat/20260507-100309/rapport-no2-pacteclimat-2025.pdf", "page": 7 }
+  },
+  "tubes": [
+    {
+      "id": "kennedy",
+      "name": "48, boulevard Kennedy",
+      "note": "Listed as \"50-52, boulevard Kennedy\" in the 2018-2020 reports; same site.",
+      "tubeIds": ["NESTE04", "NTEPA01", "NESTE10", "NESTE11"],
+      "lat": 49.494214,
+      "lng": 5.984654,
+      "approximateLocation": false,
+      "readings": {
+        "2018": 52,
+        "2019": 45.4,
+        "2020": 36.5,
+        "2021": 35,
+        "2022": 36,
+        "2023": 30,
+        "2024": 27,
+        "2025": 27
+      }
+    },
+    {
+      "id": "rue-de-luxembourg",
+      "name": "205, rue de Luxembourg",
+      "tubeIds": ["NESTE08"],
+      "lat": 49.508746,
+      "lng": 5.989312,
+      "approximateLocation": false,
+      "readings": {
+        "2018": 38,
+        "2019": 35.3,
+        "2020": 30,
+        "2021": 28,
+        "2022": 29,
+        "2023": 23,
+        "2024": 21,
+        "2025": 22
+      }
+    },
+    {
+      "id": "neudorf",
+      "name": "18, Neudorf",
+      "note": "Added to the campaign in 2020; no readings in 2018-2019. Address is a street name (rue Neudorf), not a locality - geocoded to the street, not an exact house number.",
+      "tubeIds": ["NESTE09"],
+      "lat": 49.493023,
+      "lng": 5.992634,
+      "approximateLocation": true,
+      "readings": {
+        "2018": null,
+        "2019": null,
+        "2020": 32,
+        "2021": 31,
+        "2022": 31,
+        "2023": 26,
+        "2024": 24,
+        "2025": 23
+      }
+    },
+    {
+      "id": "useldinger",
+      "name": "69, rue Arthur Useldinger",
+      "tubeIds": ["NESTE07", "NTEPA03", "NESTE12", "NESTE13"],
+      "lat": 49.505344,
+      "lng": 5.976617,
+      "approximateLocation": false,
+      "readings": {
+        "2018": 24,
+        "2019": 23.1,
+        "2020": 18,
+        "2021": 18,
+        "2022": 18.5,
+        "2023": 15,
+        "2024": 14,
+        "2025": 16
+      }
+    }
+  ]
+}

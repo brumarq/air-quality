@@ -8,11 +8,15 @@ import { CommuneHeaderCard, type AreaMode } from "@/components/communes/commune-
 import { CommuneReadingsPanel } from "@/components/communes/commune-readings-panel"
 import { HeatPlaceholderCard } from "@/components/communes/heat-placeholder-card"
 import { PollutantTrendChart } from "@/components/communes/pollutant-trend-chart"
+import { NO2ReductionCard } from "@/components/communes/no2-reduction-card"
+import { NO2TubeDetailCard } from "@/components/communes/no2-tube-detail-card"
 import { ReportCard } from "@/components/communes/report-card"
 import { AirQualityStation } from "@/lib/types/air-quality"
 import { POLLUTANT_LIMITS } from "@/lib/constants/air-quality-limits"
 import { TIME_RANGES } from "@/lib/constants/time-ranges"
 import { useSensorHistory } from "@/hooks/use-sensor-history"
+import { useNo2TubeMarkers } from "@/hooks/use-no2-tube-markers"
+import { getNo2TubeDataset } from "@/lib/no2-tubes"
 import type { CommuneConfig } from "@/data/communes"
 
 interface MapContainerProps {
@@ -48,6 +52,16 @@ export function MapContainer({
   // Heat mode has no data fetching need yet.
   const history = useSensorHistory(mode === "air" ? stations : [], selectedLimit, selectedRange.days)
 
+  // NO2 tubes: only exist for communes with a Pacte Climat dataset (Esch today), only
+  // shown in air mode. See ESCH-HEAT-PROFILE-PLAN.md Step 2.5.
+  const tubeDataset = getNo2TubeDataset(communeConfig.slug)
+  const { selectedTubeId, setSelectedTubeId } = useNo2TubeMarkers({
+    map,
+    mapLoaded,
+    dataset: tubeDataset,
+    visible: mode === "air",
+  })
+
   return (
     <div className="relative flex-1 h-full">
       {/* Map container */}
@@ -79,12 +93,24 @@ export function MapContainer({
             onSelectRange={setSelectedRangeKey}
           />
           {mode === "air" ? (
-            <CommuneReadingsPanel
-              history={history}
-              selectedLimit={selectedLimit}
-              range={selectedRange}
-              onSelectParameter={setSelectedParameter}
-            />
+            <>
+              <CommuneReadingsPanel
+                history={history}
+                selectedLimit={selectedLimit}
+                range={selectedRange}
+                onSelectParameter={setSelectedParameter}
+              />
+              {tubeDataset &&
+                (selectedTubeId ? (
+                  <NO2TubeDetailCard dataset={tubeDataset} tubeId={selectedTubeId} onBack={() => setSelectedTubeId(null)} />
+                ) : (
+                  <NO2ReductionCard
+                    dataset={tubeDataset}
+                    selectedTubeId={selectedTubeId}
+                    onSelectTube={setSelectedTubeId}
+                  />
+                ))}
+            </>
           ) : (
             <HeatPlaceholderCard />
           )}
