@@ -1,4 +1,4 @@
-import { Location, Sensor, SensorReading, SensorReadingHistoryPoint } from '../types/air-quality'
+import { Location, Sensor, SensorReadingHistoryPoint } from '../types/air-quality'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8081/api/v1/air-quality'
 
@@ -18,21 +18,6 @@ export class AirQualityApi {
       throw new Error(`Failed to fetch sensors for location ${locationId}`)
     }
     return response.json()
-  }
-  
-  static async getLocationReadings(locationId: number, hours: number = 24): Promise<SensorReading[]> {
-    // Get sensors for the location, which already include latest readings
-    const sensors = await this.getLocationSensors(locationId)
-    
-    // Convert sensors to readings format
-    return sensors
-      .filter(sensor => sensor.lastValue !== null && sensor.lastValue !== undefined)
-      .map(sensor => ({
-        id: sensor.id,
-        value: sensor.lastValue!,
-        timestamp: sensor.lastUpdated!,
-        sensor: sensor
-      }))
   }
   
   static async getSensorReadingHistory(sensorId: number, from: Date, to: Date): Promise<SensorReadingHistoryPoint[]> {

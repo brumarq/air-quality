@@ -17,13 +17,6 @@ export interface Sensor {
   locationId?: number
 }
 
-export interface SensorReading {
-  id: number
-  value: number
-  timestamp: string
-  sensor: Sensor
-}
-
 export interface SensorReadingHistoryPoint {
   timestamp: string
   value: number
@@ -36,5 +29,4 @@ export interface AirQualityStation {
   lat: number
   lng: number
   sensors?: Sensor[]
-  readings?: SensorReading[]
 }
