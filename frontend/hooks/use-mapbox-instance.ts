@@ -10,13 +10,14 @@ interface UseMapboxInstanceProps {
   initialLng: number
   initialLat: number
   initialZoom: number
+  showNavigationControl?: boolean
 }
 
 /**
  * Hook for managing the core Mapbox GL instance
  * Handles initialization, error states, and basic controls
  */
-export function useMapboxInstance({ initialLng, initialLat, initialZoom }: UseMapboxInstanceProps) {
+export function useMapboxInstance({ initialLng, initialLat, initialZoom, showNavigationControl = true }: UseMapboxInstanceProps) {
   const map = useRef<mapboxgl.Map | null>(null)
   const [mapLoaded, setMapLoaded] = useState(false)
   const [mapError, setMapError] = useState<string | null>(null)
@@ -28,7 +29,7 @@ export function useMapboxInstance({ initialLng, initialLat, initialZoom }: UseMa
     try {
       map.current = new mapboxgl.Map({
         container: node,
-        style: "mapbox://styles/mapbox/light-v11",
+        style: "mapbox://styles/mapbox/standard",
         center: [initialLng, initialLat],
         zoom: initialZoom,
         attributionControl: false,
@@ -42,11 +43,12 @@ export function useMapboxInstance({ initialLng, initialLat, initialZoom }: UseMa
       map.current.on('style.load', () => {
         if (!map.current) return
         map.current.addControl(new mapboxgl.AttributionControl({ compact: true }), "bottom-left")
-        map.current.addControl(
-          new mapboxgl.NavigationControl({ showCompass: false, visualizePitch: false }),
-          "bottom-right",
-        )
-        map.current.addControl(new mapboxgl.FullscreenControl(), "top-right")
+        if (showNavigationControl) {
+          map.current.addControl(
+            new mapboxgl.NavigationControl({ showCompass: false, visualizePitch: false }),
+            "bottom-right",
+          )
+        }
       })
 
       map.current.on("load", () => {
@@ -65,7 +67,7 @@ export function useMapboxInstance({ initialLng, initialLat, initialZoom }: UseMa
       console.error("Error initializing map:", error)
       setMapError(`Error initializing map: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
-  }, [initialLng, initialLat, initialZoom])
+  }, [initialLng, initialLat, initialZoom, showNavigationControl])
 
   return {
     mapContainer,

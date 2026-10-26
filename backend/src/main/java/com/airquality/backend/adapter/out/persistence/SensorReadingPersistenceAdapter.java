@@ -11,6 +11,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -47,5 +50,14 @@ public class SensorReadingPersistenceAdapter implements SensorReadingRepository 
                 measurement.value(),
                 measurement.unit().getDisplayValue()
         );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Measurement> getSensorReadingHistory(Integer sensorEntityId, LocalDateTime from, LocalDateTime to) {
+        return sensorReadingEntityRepository.findBySensorIdAndTimestampBetween(sensorEntityId, from, to)
+                .stream()
+                .map(sensorReadingMapper::toDomain)
+                .toList();
     }
 }

@@ -1,4 +1,4 @@
-import { Location, Sensor, SensorReading } from '../types/air-quality'
+import { Location, Sensor, SensorReadingHistoryPoint } from '../types/air-quality'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8081/api/v1/air-quality'
 
@@ -20,24 +20,21 @@ export class AirQualityApi {
     return response.json()
   }
   
-  static async getLocationReadings(locationId: number, hours: number = 24): Promise<SensorReading[]> {
-    // Get sensors for the location, which already include latest readings
-    const sensors = await this.getLocationSensors(locationId)
-    
-    // Convert sensors to readings format
-    return sensors
-      .filter(sensor => sensor.lastValue !== null && sensor.lastValue !== undefined)
-      .map(sensor => ({
-        id: sensor.id,
-        value: sensor.lastValue!,
-        timestamp: sensor.lastUpdated!,
-        sensor: sensor
-      }))
+  static async getSensorReadingHistory(sensorId: number, from: Date, to: Date): Promise<SensorReadingHistoryPoint[]> {
+    const params = new URLSearchParams({
+      from: toLocalIsoString(from),
+      to: toLocalIsoString(to),
+    })
+    const response = await fetch(`${API_BASE_URL}/sensors/${sensorId}/readings?${params}`)
+    if (!response.ok) {
+      throw new Error(`Failed to fetch reading history for sensor ${sensorId}`)
+    }
+    return response.json()
   }
-  
-  static async getSensorReadings(sensorId: number, hours: number = 24): Promise<SensorReading[]> {
-    // For now, we don't have historical readings endpoint, so return empty array
-    // In the future, this would fetch historical data from a readings endpoint
-    return []
-  }
+}
+
+// Backend parses this as a timezone-naive LocalDateTime, so strip the "Z"/offset
+// Date.toISOString() would add - it must match the naive timestamps already stored.
+function toLocalIsoString(date: Date): string {
+  return date.toISOString().slice(0, 19)
 }
