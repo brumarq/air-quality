@@ -1,0 +1,72 @@
+{
+  "method": "Landsat 8+9 median surface temperature, summer (Jun-Aug) 2022-2025, sampled at each named point",
+  "points": [
+    {
+      "name": "Rue Zénon Bernard (dense centre)",
+      "studySays": "hot",
+      "tempC": 40.51,
+      "approximate": false,
+      "lat": 49.4919,
+      "lon": 5.9785
+    },
+    {
+      "name": "Esch-Schifflange industrial site",
+      "studySays": "hot",
+      "tempC": 40.22,
+      "approximate": false,
+      "lat": 49.5032,
+      "lon": 5.9935
+    },
+    {
+      "name": "An der Schmelz car parks",
+      "studySays": "hot",
+      "tempC": 39.17,
+      "approximate": false,
+      "lat": 49.4958,
+      "lon": 5.967
+    },
+    {
+      "name": "Town hall square",
+      "studySays": "hot",
+      "tempC": 38.9,
+      "approximate": false,
+      "lat": 49.4959,
+      "lon": 5.9855
+    },
+    {
+      "name": "Boulevard Kennedy",
+      "studySays": "hot",
+      "tempC": 36.96,
+      "approximate": false,
+      "lat": 49.494214,
+      "lon": 5.984654
+    },
+    {
+      "name": "Park Clair-Chêne",
+      "studySays": "cool",
+      "tempC": 36.51,
+      "approximate": true,
+      "lat": 49.4987,
+      "lon": 5.9713
+    },
+    {
+      "name": "Parc Laval",
+      "studySays": "cool",
+      "tempC": 34.39,
+      "approximate": false,
+      "lat": 49.4989,
+      "lon": 5.9781
+    },
+    {
+      "name": "Brucherbierg-Lalléngerbierg edge",
+      "studySays": "cool",
+      "tempC": 33.94,
+      "approximate": false,
+      "lat": 49.495,
+      "lon": 6.0017
+    }
+  ],
+  "coldestHotPointC": 36.96,
+  "warmestCoolPointC": 36.51,
+  "cleanSeparation": true
+}
