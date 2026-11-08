@@ -20,7 +20,7 @@ export function ReportCard() {
         <h2 className="text-sm font-semibold">Report</h2>
 
         <Collapsible open={open} onOpenChange={setOpen}>
-          <CollapsibleTrigger className="flex items-center justify-between gap-2 w-full text-xs font-medium text-neutral-600">
+          <CollapsibleTrigger className="flex items-center justify-between gap-2 w-full text-xs font-medium text-ink-soft">
             <span>Sources and method</span>
             <ChevronDown className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} />
           </CollapsibleTrigger>

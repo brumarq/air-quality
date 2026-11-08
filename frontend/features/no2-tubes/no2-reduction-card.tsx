@@ -47,7 +47,7 @@ export function NO2ReductionCard({ dataset, selectedTubeId, onSelectTube }: NO2R
                 <td className="py-1.5 px-2 text-right tabular-nums">{row.latestValue}</td>
                 <td
                   className={`py-1.5 px-2 text-right tabular-nums ${
-                    row.pctVsTarget > 0 ? "text-amber-700" : "text-emerald-700"
+                    row.pctVsTarget > 0 ? "text-no2-above-target" : "text-no2-below-target"
                   }`}
                 >
                   {row.pctVsTarget > 0 ? "+" : ""}

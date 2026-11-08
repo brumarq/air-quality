@@ -129,7 +129,7 @@ export function HeatStoryPanel({ data, communeName, tubeDataset, map }: HeatStor
         </div>
 
         {kennedyStudyPoint && kennedyReduction && (
-          <p className="text-xs text-neutral-700 pt-3 border-t">
+          <p className="text-xs text-ink-strong pt-3 border-t">
             <span className="font-medium">Boulevard Kennedy:</span> a heat hotspot in the PRO-SUD study, and NO₂
             still{" "}
             <span className="font-semibold">

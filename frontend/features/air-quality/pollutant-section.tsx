@@ -16,8 +16,8 @@ export function PollutantSection({ history, limit, live }: PollutantSectionProps
           {limit.label} by station · {limit.unit}
         </h4>
         <span className="flex gap-3 text-xs font-medium">
-          <span className="text-[#B91C1C]">2030: {limit.limit2030}</span>
-          <span className="text-[#525252]">today: {limit.limitToday}</span>
+          <span className="text-limit-target">2030: {limit.limit2030}</span>
+          <span className="text-limit-today">today: {limit.limitToday}</span>
         </span>
       </div>
       <div className="flex flex-col gap-3">

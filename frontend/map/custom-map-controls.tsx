@@ -8,7 +8,7 @@ interface CustomMapControlsProps {
 
 export function CustomMapControls({ map, communeConfig }: CustomMapControlsProps) {
   return (
-    <div className="pointer-events-auto flex flex-col border rounded-lg bg-white shadow-md overflow-hidden">
+    <div className="pointer-events-auto flex flex-col border rounded-lg bg-control shadow-md overflow-hidden">
       <button
         type="button"
         aria-label="Zoom in"

@@ -1,8 +1,10 @@
-import { dirname } from "path"
+import { dirname, join } from "path"
 import { fileURLToPath } from "url"
 import { FlatCompat } from "@eslint/eslintrc"
+import tailwind from "eslint-plugin-tailwindcss"
 
-const compat = new FlatCompat({ baseDirectory: dirname(fileURLToPath(import.meta.url)) })
+const ROOT = dirname(fileURLToPath(import.meta.url))
+const compat = new FlatCompat({ baseDirectory: ROOT })
 
 // Import direction: app -> features -> map / domain / api / components/ui.
 // Each layer lists what it may NOT import. Outside code reaches a feature only
@@ -42,9 +44,13 @@ const eslintConfig = [
     },
   },
   {
-    // Tailwind's config is CommonJS and loads plugins with require()
-    files: ["tailwind.config.js"],
-    rules: { "@typescript-eslint/no-require-imports": "off" },
+    // A class Tailwind doesn't know renders as nothing, silently. This catches typos and
+    // off-palette colours (theme.colors replaces the default palette). Folders missing
+    // from the content globs are caught by test/tailwind-content.test.ts.
+    files: ["**/*.tsx"],
+    plugins: { tailwindcss: tailwind },
+    settings: { tailwindcss: { config: join(ROOT, "tailwind.config.ts"), callees: ["cn", "cva"] } },
+    rules: { "tailwindcss/no-custom-classname": "error" },
   },
   {
     files: ["**/*.{ts,tsx,js,mjs}"],

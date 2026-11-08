@@ -37,11 +37,11 @@ export function CommuneHeaderCard({
       <CardContent className="p-4 flex flex-col gap-4">
         <div className="flex items-center justify-between gap-2">
           <span className="flex items-center gap-2 text-sm">
-            <span className="text-teal-500" aria-hidden="true">
+            <span className="text-brand" aria-hidden="true">
               ◎
             </span>
             <span className="font-semibold">LuxAir</span>
-            <span className="text-neutral-300" aria-hidden="true">
+            <span className="text-ink-faint" aria-hidden="true">
               /
             </span>
             <span className="text-muted-foreground">{communeConfig.slug ? "Commune profile" : "National overview"}</span>

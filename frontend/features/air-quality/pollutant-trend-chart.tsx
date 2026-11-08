@@ -38,14 +38,14 @@ export function PollutantTrendChart({ history, limit, range }: PollutantTrendCha
             {range.live && (
               <span className="flex items-center gap-1 text-xs font-normal text-muted-foreground">
                 <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-600 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-red-600" />
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-live opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-live" />
                 </span>
                 Live
               </span>
             )}
           </div>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-neutral-700">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-ink-strong">
             {history?.map(({ station }, i) => (
               <span key={station.id} className="flex items-center gap-2">
                 <span className="w-4 h-1 rounded-sm" style={{ background: STATION_COLORS[i % STATION_COLORS.length] }} />

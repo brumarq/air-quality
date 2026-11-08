@@ -26,7 +26,7 @@ export function StationLimitBar({ station, color, points, limit, live }: Station
           <span className="text-sm text-muted-foreground">No data</span>
         </div>
         <div className="relative h-4">
-          <div className="absolute top-1 left-0 right-0 h-2 rounded bg-[#F0F0F0]" />
+          <div className="absolute top-1 left-0 right-0 h-2 rounded bg-bar-track" />
         </div>
         <span className="text-xs text-muted-foreground">No recent reading for this period</span>
       </div>
@@ -48,7 +48,7 @@ export function StationLimitBar({ station, color, points, limit, live }: Station
         <span className="text-lg font-semibold tabular-nums">{value.toFixed(1)}</span>
       </div>
       <div className="relative h-4">
-        <div className="absolute top-1 left-0 right-0 h-2 rounded bg-[#F0F0F0]" />
+        <div className="absolute top-1 left-0 right-0 h-2 rounded bg-bar-track" />
         <div
           className="absolute top-1 left-0 h-2 rounded"
           style={{ width: `${pct}%`, background: LIMIT_STATUS_COLOR[status] }}

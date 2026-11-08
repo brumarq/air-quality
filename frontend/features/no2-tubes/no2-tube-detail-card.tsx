@@ -44,7 +44,7 @@ export function NO2TubeDetailCard({ dataset, tubeId, onBack }: NO2TubeDetailCard
       </CardHeader>
       <CardContent>
         {tube.approximateLocation && (
-          <p className="text-xs text-amber-700 bg-amber-50 rounded px-2 py-1 mb-2">
+          <p className="text-xs text-notice-foreground bg-notice rounded px-2 py-1 mb-2">
             Approximate location — street matched, exact house number not confirmed.
           </p>
         )}
@@ -64,7 +64,7 @@ export function NO2TubeDetailCard({ dataset, tubeId, onBack }: NO2TubeDetailCard
             <ReferenceLine y={dataset.limit2030} stroke={LIMIT_2030_COLOR} strokeDasharray="4 3" />
           </BarChart>
         </ResponsiveContainer>
-        <div className="flex items-center gap-4 text-xs text-neutral-700 pt-1">
+        <div className="flex items-center gap-4 text-xs text-ink-strong pt-1">
           <span className="flex items-center gap-2">
             <span className="w-4 border-t border-dashed" style={{ borderColor: LIMIT_2030_COLOR }} />
             2030 limit

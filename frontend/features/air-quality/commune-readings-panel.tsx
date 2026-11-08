@@ -25,7 +25,7 @@ export function CommuneReadingsPanel({ history, selectedLimit, range, onSelectPa
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between gap-2">
           <h3 className="font-semibold text-base">Air quality</h3>
-          <span className="px-2 py-1 rounded-md bg-muted text-xs font-medium text-neutral-600">{range.chip}</span>
+          <span className="px-2 py-1 rounded-md bg-muted text-xs font-medium text-ink-soft">{range.chip}</span>
         </div>
       </CardHeader>
       <CardContent className="flex-1 min-h-0 flex flex-col gap-4">

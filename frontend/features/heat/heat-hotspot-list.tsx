@@ -54,7 +54,7 @@ export function HeatHotspotList({
             opacity: 0.15,
           }}
         />
-        <div className="relative flex items-center justify-between px-2 py-1 text-xs hover:bg-black/5 rounded">
+        <div className="relative flex items-center justify-between px-2 py-1 text-xs hover:bg-scrim/5 rounded">
           <span>
             {p.name}
             {p.approximate && "*"}
@@ -71,7 +71,7 @@ export function HeatHotspotList({
         Spots named in the study · satellite surface temperature, June–August median, {yearRange}
       </p>
 
-      <p className="text-xs font-semibold text-red-800 px-2 mb-0.5">Named hot</p>
+      <p className="text-xs font-semibold text-study-hot-label px-2 mb-0.5">Named hot</p>
       <div className="flex flex-col">
         {hotPoints.map((p) => (
           <Row key={p.name} p={p} />
@@ -79,16 +79,16 @@ export function HeatHotspotList({
       </div>
 
       <div className="flex items-center gap-2 py-1.5">
-        <div className="flex-1 border-t border-dashed border-emerald-400" />
-        <span className="text-xs text-emerald-700 font-medium whitespace-nowrap">
+        <div className="flex-1 border-t border-dashed border-study-separation-line" />
+        <span className="text-xs text-study-separation-text font-medium whitespace-nowrap">
           {cleanSeparation
             ? `${(coldestHotPointC - warmestCoolPointC).toFixed(1)}°C gap — no overlap`
             : "overlap found"}
         </span>
-        <div className="flex-1 border-t border-dashed border-emerald-400" />
+        <div className="flex-1 border-t border-dashed border-study-separation-line" />
       </div>
 
-      <p className="text-xs font-semibold text-blue-800 px-2 mb-0.5">Named cool</p>
+      <p className="text-xs font-semibold text-study-cool-label px-2 mb-0.5">Named cool</p>
       <div className="flex flex-col">
         {coolPoints.map((p) => (
           <Row key={p.name} p={p} />
