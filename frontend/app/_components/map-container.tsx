@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import "mapbox-gl/dist/mapbox-gl.css"
 import { CommuneReadingsPanel, PollutantTrendChart, useSensorHistory } from "@/features/air-quality"
 import { HeatDetailCard, HeatMapCard, HeatStoryPanel, useHeatMapLayers, type HeatLayerToggles, type HeatSelection } from "@/features/heat"
-import { NO2ReductionCard, NO2TubeDetailCard, useNo2TubeMarkers } from "@/features/no2-tubes"
+import { NO2ReductionCard, NO2TubeDetailCard, NO2TubesMessage, useNo2TubeMarkers } from "@/features/no2-tubes"
 import { useMapResize } from "@/map/use-map-resize"
 import { CustomMapControls } from "@/map/custom-map-controls"
 import type { MapStatus } from "@/map/use-mapbox-instance"
@@ -13,7 +13,8 @@ import { ReportCard } from "./report-card"
 import { AirQualityStation } from "@/domain/air-quality"
 import { NO2_LIMITS, POLLUTANT_LIMITS, type PollutantParameter } from "@/domain/limits"
 import { TIME_RANGES, type RangeKey } from "@/domain/time-ranges"
-import { getNo2TubeDataset } from "@/api/no2-tubes"
+import { fetchNo2TubeDataset } from "@/api/no2-tubes"
+import { useAsync } from "@/lib/use-async"
 import { getHeatYears } from "@/domain/heat"
 import type { CommuneConfig } from "@/domain/communes"
 
@@ -53,7 +54,11 @@ export function MapContainer({
 
   // NO2 tubes: only exist for communes with a Pacte Climat dataset (Esch today), only
   // shown in air mode. See ESCH-HEAT-PROFILE-PLAN.md Step 2.5.
-  const tubeDataset = getNo2TubeDataset(communeConfig.slug)
+  const tubeLoad = useAsync(communeConfig.slug ? `no2-tubes|${communeConfig.slug}` : null, (signal) =>
+    fetchNo2TubeDataset(communeConfig.slug, signal),
+  )
+  const tubeDataset = tubeLoad.status === "ready" && tubeLoad.data.status === "ok" ? tubeLoad.data.data : null
+  const tubeLoadFailed = tubeLoad.status === "error" || (tubeLoad.status === "ready" && tubeLoad.data.status === "error")
   const { selectedTubeId, setSelectedTubeId } = useNo2TubeMarkers({
     map,
     mapLoaded,
@@ -156,6 +161,10 @@ export function MapContainer({
                 range={selectedRange}
                 onSelectParameter={setSelectedParameter}
               />
+              {communeConfig.slug && tubeLoad.status === "loading" && (
+                <NO2TubesMessage role="status">Loading NO₂ tube data...</NO2TubesMessage>
+              )}
+              {tubeLoadFailed && <NO2TubesMessage role="alert">Couldn&apos;t load NO₂ tube data.</NO2TubesMessage>}
               {tubeDataset &&
                 (selectedTubeId ? (
                   <NO2TubeDetailCard dataset={tubeDataset} limits={NO2_LIMITS} tubeId={selectedTubeId} onBack={() => setSelectedTubeId(null)} />

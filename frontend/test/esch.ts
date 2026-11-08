@@ -1,5 +1,7 @@
 // Real Esch data for tests: the captured backend readings and the static heat/NO2 files.
 import { AirQualityApi } from "@/api/air-quality"
+import { fetchNo2TubeDataset } from "@/api/no2-tubes"
+import type { No2TubeDataset } from "@/domain/no2-tubes"
 import type { AirQualityStation, StationHistory } from "@/domain/air-quality"
 
 /** The clock every time-dependent test uses: a few hours after the fixture capture. */
@@ -25,4 +27,11 @@ export async function eschNo2History(days: number): Promise<{ history: StationHi
   const from = new Date(to.getTime() - days * 24 * 60 * 60 * 1000)
   const points = await AirQualityApi.getSensorReadingHistory(29845, from, to)
   return { history: [{ station: ESCH_ALZETTE, points }, { station: ESCH_GARE, points: [] }], from, to }
+}
+
+/** The Esch tube campaign from public/data, through the real loader. Needs the fixture fetch stub. */
+export async function loadEschTubes(): Promise<No2TubeDataset> {
+  const result = await fetchNo2TubeDataset("esch-sur-alzette")
+  if (result.status !== "ok") throw new Error(`Esch tube data didn't load: ${result.status}`)
+  return result.data
 }

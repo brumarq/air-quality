@@ -1,7 +1,7 @@
 import { z } from "zod"
-import eschTubes from "@/data/no2-tubes/esch.json"
 import { NO2_LIMITS } from "@/domain/limits"
 import type { No2TubeDataset } from "@/domain/no2-tubes"
+import { loadStaticJson, type LoadResult } from "@/api/static-data"
 
 // The campaign files key readings and sources by year ("2024": ...). The schema checks
 // them and turns them into arrays sorted by numeric year.
@@ -66,11 +66,7 @@ export const No2TubeDatasetSchema: z.ZodType<No2TubeDataset, z.ZodTypeDef, unkno
     }
   })
 
-const DATASETS: Record<string, unknown> = {
-  "esch-sur-alzette": eschTubes,
-}
-
-export function getNo2TubeDataset(communeSlug: string): No2TubeDataset | null {
-  const raw = DATASETS[communeSlug]
-  return raw === undefined ? null : No2TubeDatasetSchema.parse(raw)
+/** The commune's Pacte Climat tube campaign, from public/data/<slug>/no2-tubes.json. */
+export function fetchNo2TubeDataset(communeSlug: string, signal?: AbortSignal): Promise<LoadResult<No2TubeDataset>> {
+  return loadStaticJson(`/data/${communeSlug}/no2-tubes.json`, No2TubeDatasetSchema, signal)
 }
