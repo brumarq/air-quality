@@ -3,6 +3,7 @@ import { dirname, join } from "path"
 import { fileURLToPath } from "url"
 import { FlatCompat } from "@eslint/eslintrc"
 import tailwind from "eslint-plugin-tailwindcss"
+import eslintComments from "@eslint-community/eslint-plugin-eslint-comments"
 
 const ROOT = dirname(fileURLToPath(import.meta.url))
 const compat = new FlatCompat({ baseDirectory: ROOT })
@@ -63,6 +64,15 @@ const FEATURES = readdirSync(join(ROOT, "features"), { withFileTypes: true })
 const eslintConfig = [
   { ignores: ["lint-fixtures/**", ".next/**", ".next-e2e/**", "test-results/**", "playwright-report/**", "node_modules/**", "public/**", "next-env.d.ts"] },
   ...compat.extends("next/core-web-vitals", "next/typescript"),
+  {
+    // A disable comment for a hook or type rule hides a real bug, so those can't be
+    // disabled at all. Any other disable must say why.
+    plugins: { "@eslint-community/eslint-comments": eslintComments },
+    rules: {
+      "@eslint-community/eslint-comments/no-restricted-disable": ["error", "react-hooks/*", "@typescript-eslint/*"],
+      "@eslint-community/eslint-comments/require-description": "error",
+    },
+  },
   {
     rules: {
       "@typescript-eslint/no-explicit-any": "error",

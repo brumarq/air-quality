@@ -16,7 +16,7 @@ const toHex = (channels: number[]) => `#${channels.map((c) => Math.round(c).toSt
 export function heatAnomalyColor(anomalyC: number | null): string {
   if (anomalyC === null) return tokens.chart.noData
   const first = STOPS[0]
-  const last = STOPS[STOPS.length - 1]
+  const last = STOPS[STOPS.length - 1] ?? first
   if (anomalyC <= first[0]) return first[1]
   if (anomalyC >= last[0]) return last[1]
   const upperIndex = STOPS.findIndex(([stop]) => stop >= anomalyC)

@@ -67,9 +67,10 @@ async function getJson<T>(path: string, schema: z.ZodType<T, z.ZodTypeDef, unkno
 }
 
 export const AirQualityApi = {
-  getLocations: () => getJson("/locations", z.array(LocationSchema)),
+  getLocations: (signal?: AbortSignal) => getJson("/locations", z.array(LocationSchema), signal),
 
-  getLocationSensors: (locationId: number) => getJson(`/locations/${locationId}/sensors`, z.array(SensorSchema)),
+  getLocationSensors: (locationId: number, signal?: AbortSignal) =>
+    getJson(`/locations/${locationId}/sensors`, z.array(SensorSchema), signal),
 
   getSensorReadingHistory: (sensorId: number, from: Date, to: Date, signal?: AbortSignal) => {
     const params = new URLSearchParams({ from: toLocalIsoString(from), to: toLocalIsoString(to) })
@@ -77,16 +78,25 @@ export const AirQualityApi = {
   },
 }
 
-/** All stations with their sensors: one request for locations, then one per location in parallel. */
-export async function getAirQualityStations(): Promise<AirQualityStation[]> {
-  const locations = await AirQualityApi.getLocations()
+/**
+ * The given stations with their sensors, in the order of `stationIds`: one request for the
+ * location list, then sensors for just these stations, in parallel. Ids the backend
+ * doesn't know are left out.
+ */
+export async function getAreaStations(stationIds: number[], signal?: AbortSignal): Promise<AirQualityStation[]> {
+  const locations = await AirQualityApi.getLocations(signal)
+  const byId = new Map(locations.map((location) => [location.id, location]))
+  const known = stationIds.flatMap((id) => {
+    const location = byId.get(id)
+    return location ? [location] : []
+  })
   return Promise.all(
-    locations.map(async (location) => ({
+    known.map(async (location) => ({
       id: location.id,
       name: location.name,
       lat: location.latitude,
       lng: location.longitude,
-      sensors: await AirQualityApi.getLocationSensors(location.id),
+      sensors: await AirQualityApi.getLocationSensors(location.id, signal),
     })),
   )
 }

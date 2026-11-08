@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
-import { AirQualityApi, UtcTimestampSchema } from "@/api/air-quality"
+import { AirQualityApi, UtcTimestampSchema, getAreaStations } from "@/api/air-quality"
 
 afterEach(() => vi.unstubAllGlobals())
 
@@ -49,4 +49,22 @@ describe("UtcTimestampSchema", () => {
       expect(UtcTimestampSchema.safeParse(input).success).toBe(false)
     },
   )
+})
+
+describe("getAreaStations", () => {
+  it("fetches sensors only for the area's stations, in the area's order", async () => {
+    const requested: string[] = []
+    vi.stubGlobal("fetch", (input: string) => {
+      const path = new URL(input).pathname.replace("/api/v1/air-quality", "")
+      requested.push(path)
+      const body =
+        path === "/locations"
+          ? [1, 2, 3].map((id) => ({ id, name: `S${id}`, city: null, country: "LU", latitude: 0, longitude: 0 }))
+          : []
+      return Promise.resolve(new Response(JSON.stringify(body)))
+    })
+    const stations = await getAreaStations([3, 1, 99])
+    expect(stations.map((s) => s.id)).toEqual([3, 1])
+    expect(requested.sort()).toEqual(["/locations", "/locations/1/sensors", "/locations/3/sensors"])
+  })
 })
