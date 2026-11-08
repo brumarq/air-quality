@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { MapContainer } from "@/components/map/map-container"
+import { MapContainer } from "./map-container"
 import { useMapboxInstance } from "@/map/use-mapbox-instance"
 import { useLuxembourgBoundary } from "@/map/luxembourg-boundary"
 import { useStationLayers } from "@/features/air-quality"

@@ -1,5 +1,5 @@
 import { getCommuneBySlug } from "@/domain/communes"
-import { CommuneMap } from "@/components/communes/commune-map"
+import { CommuneMap } from "@/app/_components/commune-map"
 import { notFound } from "next/navigation"
 
 interface PageProps {
