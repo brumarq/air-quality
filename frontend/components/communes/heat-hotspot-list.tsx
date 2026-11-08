@@ -1,7 +1,7 @@
 "use client"
 
 import type mapboxgl from "mapbox-gl"
-import type { StudyComparisonPoint } from "@/lib/heat-map"
+import type { StudyComparisonPoint } from "@/domain/heat"
 
 interface HeatHotspotListProps {
   points: StudyComparisonPoint[]

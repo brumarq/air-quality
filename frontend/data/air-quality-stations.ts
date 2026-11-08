@@ -1,5 +1,5 @@
-import { AirQualityApi } from '../lib/api/air-quality'
-import { AirQualityStation } from '../lib/types/air-quality'
+import { AirQualityApi } from '@/lib/api/air-quality'
+import { AirQualityStation } from '@/domain/air-quality'
 
 export async function getAirQualityStations(): Promise<AirQualityStation[]> {
   const locations = await AirQualityApi.getLocations()

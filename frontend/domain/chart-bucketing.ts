@@ -1,4 +1,4 @@
-import type { StationHistory } from "@/hooks/use-sensor-history"
+import type { StationHistory } from "@/domain/air-quality"
 
 export type ChartRow = { timestamp: string } & Record<string, number | string>
 

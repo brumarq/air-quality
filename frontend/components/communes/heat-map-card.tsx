@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
-import { HEAT_LEGEND_STOPS, type HeatStats, getHeatYears } from "@/lib/heat-map"
+import { HEAT_LEGEND_STOPS, type HeatStats, getHeatYears } from "@/domain/heat"
 import type { HeatLayerToggles } from "@/hooks/use-heat-map-layers"
 
 interface HeatMapCardProps {

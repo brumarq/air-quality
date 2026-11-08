@@ -1,4 +1,4 @@
-import { LIMIT_STATUS_LABEL, LIMIT_STATUS_ORDER } from "@/lib/constants/air-quality-limits"
+import { LIMIT_STATUS_LABEL, LIMIT_STATUS_ORDER } from "@/domain/limits"
 import { LimitStatusDot } from "./limit-status-dot"
 
 export function LimitStatusLegend() {

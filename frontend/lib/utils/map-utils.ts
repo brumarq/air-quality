@@ -1,4 +1,4 @@
-import type { AirQualityStation } from "@/lib/types/air-quality"
+import type { AirQualityStation } from "@/domain/air-quality"
 
 // Generate GeoJSON for air quality data
 export const generateAirQualityGeoJSON = (stations: AirQualityStation[]) => {

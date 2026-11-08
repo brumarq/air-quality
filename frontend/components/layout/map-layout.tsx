@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { MapContainer } from "@/components/map/map-container"
 import { useMap } from "@/hooks/use-map"
 import { getAirQualityStations } from "@/data/air-quality-stations"
-import type { AirQualityStation } from "@/lib/types/air-quality"
+import type { AirQualityStation } from "@/domain/air-quality"
 import { CommuneConfig } from "@/data/communes"
 
 interface MapLayoutProps {

@@ -4,8 +4,7 @@ import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 
 import { ArrowLeft } from "lucide-react"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import type { HeatMapData } from "@/lib/heat-map"
-import { getHeatYears, BUILDING_KIND_LABEL } from "@/lib/heat-map"
+import { getHeatYears, BUILDING_KIND_LABEL, type HeatMapData } from "@/domain/heat"
 
 export type HeatSelection = { type: "cell"; id: string } | { type: "building"; id: string }
 

@@ -1,5 +1,5 @@
 import type mapboxgl from "mapbox-gl"
-import type { HeatMapData } from "@/lib/heat-map"
+import type { HeatMapData } from "@/domain/heat"
 import { anomalyFillExpression } from "@/lib/heat-map"
 
 export const HEAT_GRID_SOURCE_ID = "heat-grid-data"

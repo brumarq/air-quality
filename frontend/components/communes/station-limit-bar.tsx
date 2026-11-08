@@ -1,5 +1,5 @@
-import type { AirQualityStation, SensorReadingHistoryPoint } from "@/lib/types/air-quality"
-import { LIMIT_STATUS_COLOR, LIMIT_TODAY_COLOR, LIMIT_2030_COLOR, getLimitStatus, type PollutantLimit } from "@/lib/constants/air-quality-limits"
+import type { AirQualityStation, SensorReadingHistoryPoint } from "@/domain/air-quality"
+import { LIMIT_STATUS_COLOR, LIMIT_TODAY_COLOR, LIMIT_2030_COLOR, getLimitStatus, type PollutantLimit } from "@/domain/limits"
 
 interface StationLimitBarProps {
   station: AirQualityStation

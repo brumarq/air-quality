@@ -1,11 +1,11 @@
 "use client"
 
 import { Line, LineChart, ReferenceDot, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
-import type { PollutantLimit } from "@/lib/constants/air-quality-limits"
-import type { TimeRangeOption } from "@/lib/constants/time-ranges"
-import type { StationHistory } from "@/hooks/use-sensor-history"
-import { bucketTrendData } from "@/lib/chart-bucketing"
-import { STATION_COLORS, LIMIT_TODAY_COLOR, LIMIT_2030_COLOR } from "@/lib/constants/air-quality-limits"
+import type { PollutantLimit } from "@/domain/limits"
+import type { TimeRangeOption } from "@/domain/time-ranges"
+import type { StationHistory } from "@/domain/air-quality"
+import { bucketTrendData } from "@/domain/chart-bucketing"
+import { STATION_COLORS, LIMIT_TODAY_COLOR, LIMIT_2030_COLOR } from "@/domain/limits"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 
 interface PollutantTrendChartProps {

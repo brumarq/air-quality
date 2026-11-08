@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import mapboxgl from "mapbox-gl"
-import type { AirQualityStation } from "@/lib/types/air-quality"
+import type { AirQualityStation } from "@/domain/air-quality"
 
 interface UseMapInteractionsProps {
   map: mapboxgl.Map | null

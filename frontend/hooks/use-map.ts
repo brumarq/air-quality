@@ -1,6 +1,6 @@
 "use client"
 
-import type { AirQualityStation } from "@/lib/types/air-quality"
+import type { AirQualityStation } from "@/domain/air-quality"
 import { useMapboxInstance } from "./use-mapbox-instance"
 import { useMapLayers } from "./use-map-layers"
 import { useMapInteractions } from "./use-map-interactions"

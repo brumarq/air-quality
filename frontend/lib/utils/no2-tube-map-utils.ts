@@ -1,5 +1,5 @@
-import type { NO2TubeDataset } from "@/lib/no2-tubes"
-import { getLatestReading, getTubeColor, getTubeYears } from "@/lib/no2-tubes"
+import type { NO2TubeDataset } from "@/domain/no2-tubes"
+import { getLatestReading, getTubeColor, getTubeYears } from "@/domain/no2-tubes"
 
 export const NO2_TUBE_SOURCE_ID = "no2-tube-data"
 export const NO2_TUBE_LAYER_ID = "no2-tube-markers"

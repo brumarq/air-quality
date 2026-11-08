@@ -1,5 +1,5 @@
-import { STATION_COLORS, type PollutantLimit } from "@/lib/constants/air-quality-limits"
-import type { StationHistory } from "@/hooks/use-sensor-history"
+import { STATION_COLORS, type PollutantLimit } from "@/domain/limits"
+import type { StationHistory } from "@/domain/air-quality"
 import { StationLimitBar } from "./station-limit-bar"
 
 interface PollutantSectionProps {

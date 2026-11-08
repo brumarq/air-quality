@@ -1,4 +1,4 @@
-import type { PollutantLimit } from "@/lib/constants/air-quality-limits"
+import type { PollutantLimit } from "@/domain/limits"
 
 interface PollutantSummaryTileProps {
   limit: PollutantLimit

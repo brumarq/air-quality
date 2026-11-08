@@ -2,13 +2,8 @@
 
 import { useEffect, useState } from "react"
 import { AirQualityApi } from "@/lib/api/air-quality"
-import type { AirQualityStation, SensorReadingHistoryPoint } from "@/lib/types/air-quality"
-import type { PollutantLimit } from "@/lib/constants/air-quality-limits"
-
-export interface StationHistory {
-  station: AirQualityStation
-  points: SensorReadingHistoryPoint[]
-}
+import type { AirQualityStation, StationHistory } from "@/domain/air-quality"
+import type { PollutantLimit } from "@/domain/limits"
 
 /**
  * Fetches one pollutant's history for every station over a rolling window ending now.

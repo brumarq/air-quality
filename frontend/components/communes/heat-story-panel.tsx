@@ -2,10 +2,9 @@
 
 import type mapboxgl from "mapbox-gl"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import type { HeatMapData } from "@/lib/heat-map"
-import { getHeatYears } from "@/lib/heat-map"
-import type { NO2TubeDataset } from "@/lib/no2-tubes"
-import { getReductionNeeded } from "@/lib/no2-tubes"
+import { getHeatYears, type HeatMapData } from "@/domain/heat"
+import type { NO2TubeDataset } from "@/domain/no2-tubes"
+import { getReductionNeeded } from "@/domain/no2-tubes"
 import { HeatHotspotList } from "./heat-hotspot-list"
 
 interface HeatStoryPanelProps {

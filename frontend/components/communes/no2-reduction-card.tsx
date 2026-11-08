@@ -1,8 +1,8 @@
 "use client"
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import type { NO2TubeDataset } from "@/lib/no2-tubes"
-import { getReductionNeeded } from "@/lib/no2-tubes"
+import type { NO2TubeDataset } from "@/domain/no2-tubes"
+import { getReductionNeeded } from "@/domain/no2-tubes"
 
 interface NO2ReductionCardProps {
   dataset: NO2TubeDataset

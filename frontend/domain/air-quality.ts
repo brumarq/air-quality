@@ -30,3 +30,8 @@ export interface AirQualityStation {
   lng: number
   sensors?: Sensor[]
 }
+
+export interface StationHistory {
+  station: AirQualityStation
+  points: SensorReadingHistoryPoint[]
+}

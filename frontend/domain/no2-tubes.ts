@@ -1,5 +1,3 @@
-import eschTubes from "@/data/no2-tubes/esch.json"
-
 export interface NO2TubeSource {
   title: string
   url: string
@@ -26,14 +24,6 @@ export interface NO2TubeDataset {
   method: string
   sources: Record<string, NO2TubeSource>
   tubes: NO2Tube[]
-}
-
-const DATASETS: Record<string, NO2TubeDataset> = {
-  "esch-sur-alzette": eschTubes as NO2TubeDataset,
-}
-
-export function getNo2TubeDataset(communeSlug: string): NO2TubeDataset | null {
-  return DATASETS[communeSlug] ?? null
 }
 
 export function getTubeYears(dataset: NO2TubeDataset): number[] {

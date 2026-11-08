@@ -4,9 +4,9 @@ import { Bar, BarChart, Cell, ReferenceLine, ResponsiveContainer, Tooltip, XAxis
 import { ArrowLeft } from "lucide-react"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { LIMIT_TODAY_COLOR, LIMIT_2030_COLOR } from "@/lib/constants/air-quality-limits"
-import type { NO2TubeDataset } from "@/lib/no2-tubes"
-import { getTubeColor, getTubeYears } from "@/lib/no2-tubes"
+import { LIMIT_TODAY_COLOR, LIMIT_2030_COLOR } from "@/domain/limits"
+import type { NO2TubeDataset } from "@/domain/no2-tubes"
+import { getTubeColor, getTubeYears } from "@/domain/no2-tubes"
 
 interface NO2TubeDetailCardProps {
   dataset: NO2TubeDataset

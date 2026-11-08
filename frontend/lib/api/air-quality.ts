@@ -1,4 +1,4 @@
-import { Location, Sensor, SensorReadingHistoryPoint } from '../types/air-quality'
+import { Location, Sensor, SensorReadingHistoryPoint } from '@/domain/air-quality'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8081/api/v1/air-quality'
 
