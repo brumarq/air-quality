@@ -1,78 +1,85 @@
 "use client"
 
-import { useRef, useState, useCallback } from "react"
+import { useEffect, useState } from "react"
 import mapboxgl from "mapbox-gl"
 
-// Configure Mapbox access token from environment variables
-mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || ""
+export type MapStatus =
+  | { status: "loading" }
+  // `issue` is the latest error after the map started (e.g. a tile that failed to load).
+  // The map still works, so it's shown as a notice rather than replacing the map.
+  | { status: "ready"; issue: string | null }
+  | { status: "error"; message: string }
 
 interface UseMapboxInstanceProps {
-  initialLng: number
-  initialLat: number
-  initialZoom: number
-  showNavigationControl?: boolean
+  center: [number, number]
+  zoom: number
+}
+
+const MISSING_TOKEN: MapStatus = {
+  status: "error",
+  message: "no Mapbox token is configured (NEXT_PUBLIC_MAPBOX_TOKEN).",
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "unknown error"
 }
 
 /**
- * Hook for managing the core Mapbox GL instance
- * Handles initialization, error states, and basic controls
+ * Creates the Mapbox map once its container div mounts, and removes it (and its WebGL
+ * context) when the div unmounts. `map` is only set once the style has loaded, so callers
+ * can add sources and layers as soon as it's non-null.
  */
-export function useMapboxInstance({ initialLng, initialLat, initialZoom, showNavigationControl = true }: UseMapboxInstanceProps) {
-  const map = useRef<mapboxgl.Map | null>(null)
-  const [mapLoaded, setMapLoaded] = useState(false)
-  const [mapError, setMapError] = useState<string | null>(null)
+export function useMapboxInstance({ center: [lng, lat], zoom }: UseMapboxInstanceProps) {
+  const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? ""
+  const [container, setContainer] = useState<HTMLDivElement | null>(null)
+  const [map, setMap] = useState<mapboxgl.Map | null>(null)
+  const [status, setStatus] = useState<MapStatus>({ status: "loading" })
 
-  // Callback ref — fires as soon as the div mounts in the DOM
-  const mapContainer = useCallback((node: HTMLDivElement | null) => {
-    if (!node || map.current || !mapboxgl.accessToken) return
+  useEffect(() => {
+    if (!container || !token) return
 
+    let instance: mapboxgl.Map
     try {
-      map.current = new mapboxgl.Map({
-        container: node,
+      mapboxgl.accessToken = token
+      instance = new mapboxgl.Map({
+        container,
         style: "mapbox://styles/mapbox/standard",
-        center: [initialLng, initialLat],
-        zoom: initialZoom,
+        center: [lng, lat],
+        zoom,
         attributionControl: false,
       })
-
-      map.current.on('error', (e) => {
-        console.error('Mapbox error:', e.error)
-        setMapError(`Map error: ${e.error?.message || 'Unknown error'}`)
-      })
-
-      map.current.on('style.load', () => {
-        if (!map.current) return
-        map.current.addControl(new mapboxgl.AttributionControl({ compact: true }), "bottom-left")
-        if (showNavigationControl) {
-          map.current.addControl(
-            new mapboxgl.NavigationControl({ showCompass: false, visualizePitch: false }),
-            "bottom-right",
-          )
-        }
-      })
-
-      map.current.on("load", () => {
-        setMapLoaded(true)
-        setMapError(null)
-        setTimeout(() => {
-          if (map.current) map.current.resize()
-        }, 100)
-      })
-
-      const handleResize = () => {
-        if (map.current) map.current.resize()
-      }
-      window.addEventListener("resize", handleResize)
     } catch (error) {
-      console.error("Error initializing map:", error)
-      setMapError(`Error initializing map: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      setStatus({ status: "error", message: errorMessage(error) })
+      return
     }
-  }, [initialLng, initialLat, initialZoom, showNavigationControl])
+
+    let loaded = false
+    let settleTimer: ReturnType<typeof setTimeout> | undefined
+    instance.addControl(new mapboxgl.AttributionControl({ compact: true }), "bottom-left")
+    instance.on("error", (event: { error?: unknown }) => {
+      const message = errorMessage(event.error)
+      // Before "load", an error means the map never started (bad token, style unreachable).
+      setStatus(loaded ? { status: "ready", issue: message } : { status: "error", message })
+    })
+    instance.on("load", () => {
+      loaded = true
+      setMap(instance)
+      setStatus({ status: "ready", issue: null })
+      // The floating cards finish laying out after the first paint; resize once they have.
+      settleTimer = setTimeout(() => instance.resize(), 100)
+    })
+
+    return () => {
+      clearTimeout(settleTimer)
+      setMap(null)
+      setStatus({ status: "loading" })
+      instance.remove()
+    }
+  }, [container, token, lng, lat, zoom])
 
   return {
-    mapContainer,
-    map: map.current,
-    mapLoaded,
-    mapError,
+    containerRef: setContainer,
+    map,
+    status: token ? status : MISSING_TOKEN,
   }
 }

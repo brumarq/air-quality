@@ -1,41 +1,100 @@
 // @vitest-environment jsdom
-import { describe, expect, it, vi } from "vitest"
-import { render } from "@testing-library/react"
+import { afterEach, describe, expect, it, vi } from "vitest"
+import { act, render, screen } from "@testing-library/react"
 import { useMapboxInstance } from "./use-mapbox-instance"
 
-// The hook reads the token when its module loads, so set it before the imports run.
-vi.hoisted(() => {
-  process.env.NEXT_PUBLIC_MAPBOX_TOKEN = "pk.test"
-})
-
-const { removeSpy } = vi.hoisted(() => ({ removeSpy: vi.fn() }))
+const { fakeMaps } = vi.hoisted(() => ({ fakeMaps: [] as { emit: (event: string, payload?: unknown) => void; removed: number }[] }))
 
 vi.mock("mapbox-gl", () => {
   class FakeMap {
-    on() {
+    removed = 0
+    private handlers = new Map<string, (payload?: unknown) => void>()
+    constructor() {
+      fakeMaps.push(this)
+    }
+    on(event: string, handler: (payload?: unknown) => void) {
+      this.handlers.set(event, handler)
+      return this
+    }
+    emit(event: string, payload?: unknown) {
+      this.handlers.get(event)?.(payload)
+    }
+    addControl() {
+      return this
+    }
+    resize() {
       return this
     }
     remove() {
-      removeSpy()
+      this.removed += 1
     }
   }
-  return { default: { accessToken: "", Map: FakeMap } }
+  class AttributionControl {}
+  return { default: { accessToken: "", Map: FakeMap, AttributionControl } }
 })
 
 function MapHost() {
-  const { mapContainer } = useMapboxInstance({ initialLng: 0, initialLat: 0, initialZoom: 1 })
-  return <div ref={mapContainer} />
+  const { containerRef, map, status } = useMapboxInstance({ center: [0, 0], zoom: 1 })
+  return (
+    <div ref={containerRef}>
+      <span data-testid="status">{status.status === "error" ? `error: ${status.message}` : status.status === "ready" ? `ready: ${status.issue ?? "-"}` : "loading"}</span>
+      <span data-testid="map">{map ? "map" : "no map"}</span>
+    </div>
+  )
 }
 
+const statusText = () => screen.getByTestId("status").textContent
+const latestMap = () => {
+  const map = fakeMaps.at(-1)
+  if (!map) throw new Error("no map was created")
+  return map
+}
+
+afterEach(() => {
+  fakeMaps.length = 0
+  vi.unstubAllEnvs()
+})
+
 describe("useMapboxInstance", () => {
-  it.fails("removes the map when the component unmounts", () => {
-    render(<MapHost />).unmount()
-    expect(removeSpy).toHaveBeenCalledTimes(1)
+  it("removes the map when the component unmounts", () => {
+    vi.stubEnv("NEXT_PUBLIC_MAPBOX_TOKEN", "pk.test")
+    const view = render(<MapHost />)
+    const map = latestMap()
+    view.unmount()
+    expect(map.removed).toBe(1)
   })
 
-  it.fails("removes its window resize listener when the component unmounts", () => {
-    const removeListener = vi.spyOn(window, "removeEventListener")
+  it("adds no window resize listener of its own", () => {
+    vi.stubEnv("NEXT_PUBLIC_MAPBOX_TOKEN", "pk.test")
+    const addListener = vi.spyOn(window, "addEventListener")
     render(<MapHost />).unmount()
-    expect(removeListener).toHaveBeenCalledWith("resize", expect.any(Function))
+    expect(addListener).not.toHaveBeenCalledWith("resize", expect.anything())
+  })
+
+  it("exposes the map only after it has loaded", () => {
+    vi.stubEnv("NEXT_PUBLIC_MAPBOX_TOKEN", "pk.test")
+    render(<MapHost />)
+    expect(screen.getByTestId("map").textContent).toBe("no map")
+    act(() => latestMap().emit("load"))
+    expect(screen.getByTestId("map").textContent).toBe("map")
+    expect(statusText()).toBe("ready: -")
+  })
+
+  it("reports a missing token instead of failing silently", () => {
+    vi.stubEnv("NEXT_PUBLIC_MAPBOX_TOKEN", "")
+    render(<MapHost />)
+    expect(statusText()).toBe("error: no Mapbox token is configured (NEXT_PUBLIC_MAPBOX_TOKEN).")
+    expect(fakeMaps).toHaveLength(0)
+  })
+
+  it("treats an error before load as fatal and one after load as a notice", () => {
+    vi.stubEnv("NEXT_PUBLIC_MAPBOX_TOKEN", "pk.test")
+    render(<MapHost />)
+    act(() => latestMap().emit("error", { error: new Error("401 Unauthorized") }))
+    expect(statusText()).toBe("error: 401 Unauthorized")
+
+    act(() => latestMap().emit("load"))
+    act(() => latestMap().emit("error", { error: new Error("tile failed") }))
+    expect(statusText()).toBe("ready: tile failed")
   })
 })

@@ -7,6 +7,7 @@ import { HeatDetailCard, HeatMapCard, HeatStoryPanel, useHeatMapLayers, type Hea
 import { NO2ReductionCard, NO2TubeDetailCard, useNo2TubeMarkers } from "@/features/no2-tubes"
 import { useMapResize } from "@/map/use-map-resize"
 import { CustomMapControls } from "@/map/custom-map-controls"
+import type { MapStatus } from "@/map/use-mapbox-instance"
 import { CommuneHeaderCard, type AreaMode } from "./commune-header-card"
 import { ReportCard } from "./report-card"
 import { AirQualityStation } from "@/domain/air-quality"
@@ -20,7 +21,7 @@ interface MapContainerProps {
   sidebarCollapsed: boolean
   mapContainer: React.RefCallback<HTMLDivElement>
   map: mapboxgl.Map | null
-  mapLoaded: boolean
+  mapStatus: MapStatus
   stations: AirQualityStation[]
   communeConfig: CommuneConfig
 }
@@ -31,10 +32,11 @@ export function MapContainer({
   sidebarCollapsed,
   mapContainer,
   map,
-  mapLoaded,
+  mapStatus,
   stations,
   communeConfig
 }: MapContainerProps) {
+  const mapLoaded = map !== null
   // Use the resize hook to handle map resize when sidebar state changes
   useMapResize(map, sidebarCollapsed)
 
@@ -114,12 +116,24 @@ export function MapContainer({
       />
 
       {/* Loading indicator */}
-      {!mapLoaded && (
+      {mapStatus.status === "loading" && (
         <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-40">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-2"></div>
             <div className="text-sm text-muted-foreground">Loading map...</div>
           </div>
+        </div>
+      )}
+      {mapStatus.status === "error" && (
+        <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-40">
+          <div role="alert" className="text-sm text-muted-foreground">
+            Map unavailable: {mapStatus.message}
+          </div>
+        </div>
+      )}
+      {mapStatus.status === "ready" && mapStatus.issue && (
+        <div role="status" className="absolute bottom-10 left-1/2 -translate-x-1/2 z-40 rounded-md bg-background/90 px-3 py-1.5 text-xs text-muted-foreground shadow">
+          Some map content didn&apos;t load: {mapStatus.issue}
         </div>
       )}
 

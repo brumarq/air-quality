@@ -35,12 +35,11 @@ export function MapLayout({ communeConfig }: MapLayoutProps) {
     fetchStations()
   }, [communeConfig])
 
-  const { mapContainer, map, mapLoaded } = useMapboxInstance({
-    initialLng: communeConfig.center[0],
-    initialLat: communeConfig.center[1],
-    initialZoom: communeConfig.zoom,
-    showNavigationControl: false,
+  const { containerRef, map, status: mapStatus } = useMapboxInstance({
+    center: communeConfig.center,
+    zoom: communeConfig.zoom,
   })
+  const mapLoaded = map !== null
   useLuxembourgBoundary(map, mapLoaded)
   useStationLayers(map, mapLoaded, stations)
 
@@ -49,9 +48,9 @@ export function MapLayout({ communeConfig }: MapLayoutProps) {
       <div className="flex h-screen w-full">
         <MapContainer
           sidebarCollapsed={sidebarCollapsed}
-          mapContainer={mapContainer}
+          mapContainer={containerRef}
           map={map}
-          mapLoaded={mapLoaded}
+          mapStatus={mapStatus}
           stations={stations}
           communeConfig={communeConfig}
         />
