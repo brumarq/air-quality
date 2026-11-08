@@ -47,8 +47,7 @@ export function MapContainer({
   const [selectedRangeKey, setSelectedRangeKey] = useState<RangeKey>("live")
   const selectedRange = TIME_RANGES[selectedRangeKey]
 
-  // Heat mode has no data fetching need yet.
-  const history = useSensorHistory(mode === "air" ? stations : [], selectedLimit, selectedRange.days)
+  const history = useSensorHistory(mode === "air" ? stations : null, selectedLimit, selectedRange.days)
 
   // NO2 tubes: only exist for communes with a Pacte Climat dataset (Esch today), only
   // shown in air mode. See ESCH-HEAT-PROFILE-PLAN.md Step 2.5.

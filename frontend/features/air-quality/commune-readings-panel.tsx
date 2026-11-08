@@ -1,13 +1,14 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { POLLUTANT_LIMITS, POLLUTANT_PARAMETERS, type PollutantLimit, type PollutantParameter } from "@/domain/limits"
 import type { TimeRangeOption } from "@/domain/time-ranges"
-import type { StationHistory } from "@/domain/air-quality"
+import type { AsyncState } from "@/lib/use-async"
+import type { SensorHistory } from "./use-sensor-history"
 import { PollutantSummaryTile } from "./pollutant-summary-tile"
 import { LimitStatusLegend } from "./limit-status-legend"
 import { PollutantSection } from "./pollutant-section"
 
 interface CommuneReadingsPanelProps {
-  history: StationHistory[] | null
+  history: AsyncState<SensorHistory>
   selectedLimit: PollutantLimit
   range: TimeRangeOption
   onSelectParameter: (parameter: PollutantParameter) => void
@@ -50,10 +51,14 @@ export function CommuneReadingsPanel({ history, selectedLimit, range, onSelectPa
         <LimitStatusLegend />
 
         <div className="flex-1 min-h-0 overflow-y-auto pt-4 border-t">
-          {history === null ? (
+          {history.status === "loading" ? (
             <div className="py-6 text-sm text-muted-foreground text-center">Loading...</div>
+          ) : history.status === "error" ? (
+            <div role="alert" className="py-6 text-sm text-muted-foreground text-center">
+              Couldn&apos;t load readings.
+            </div>
           ) : (
-            <PollutantSection history={history} limit={selectedLimit} live={range.live} />
+            <PollutantSection history={history.data.stations} limit={selectedLimit} live={range.live} />
           )}
         </div>
 

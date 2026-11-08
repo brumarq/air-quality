@@ -2,5 +2,5 @@
 // not from files inside this folder.
 export { CommuneReadingsPanel } from "./commune-readings-panel"
 export { PollutantTrendChart } from "./pollutant-trend-chart"
-export { useSensorHistory } from "./use-sensor-history"
+export { useSensorHistory, type SensorHistory } from "./use-sensor-history"
 export { useStationLayers } from "./use-station-layers"

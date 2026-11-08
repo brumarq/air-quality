@@ -3,21 +3,25 @@
 import { Line, LineChart, ReferenceDot, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import type { PollutantLimit } from "@/domain/limits"
 import type { TimeRangeOption } from "@/domain/time-ranges"
-import type { StationHistory } from "@/domain/air-quality"
-import { windowEndingAt } from "@/domain/time"
+import type { AsyncState } from "@/lib/use-async"
 import { tokens } from "@/theme/tokens"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { formatDataSince } from "./format-time"
 import { buildTrendChartModel, type TrendChartModel } from "./trend-chart-model"
+import type { SensorHistory } from "./use-sensor-history"
 
 interface PollutantTrendChartProps {
-  history: StationHistory[] | null
+  history: AsyncState<SensorHistory>
   limit: PollutantLimit
   range: TimeRangeOption
 }
 
-function ChartMessage({ children }: { children: React.ReactNode }) {
-  return <div className="min-h-48 flex items-center justify-center text-sm text-muted-foreground">{children}</div>
+function ChartMessage({ children, role }: { children: React.ReactNode; role?: "alert" }) {
+  return (
+    <div role={role} className="min-h-48 flex items-center justify-center text-sm text-muted-foreground">
+      {children}
+    </div>
+  )
 }
 
 function TrendChart({ model, limit }: { model: TrendChartModel; limit: PollutantLimit }) {
@@ -63,7 +67,7 @@ function TrendChart({ model, limit }: { model: TrendChartModel; limit: Pollutant
 }
 
 export function PollutantTrendChart({ history, limit, range }: PollutantTrendChartProps) {
-  const model = history ? buildTrendChartModel(history, range, windowEndingAt(new Date(), range.days)) : null
+  const model = history.status === "ready" ? buildTrendChartModel(history.data.stations, range, history.data.window) : null
 
   return (
     <Card className="pointer-events-auto w-full shadow-lg">
@@ -100,7 +104,9 @@ export function PollutantTrendChart({ history, limit, range }: PollutantTrendCha
         </div>
       </CardHeader>
       <CardContent>
-        {model === null ? (
+        {history.status === "error" ? (
+          <ChartMessage role="alert">Couldn&apos;t load readings.</ChartMessage>
+        ) : model === null ? (
           <ChartMessage>Loading...</ChartMessage>
         ) : model.earliestAt === null ? (
           <ChartMessage>No history for this pollutant yet.</ChartMessage>

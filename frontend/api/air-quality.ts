@@ -54,8 +54,8 @@ const ReadingSchema: z.ZodType<Reading, z.ZodTypeDef, unknown> = z
 // "latest" can mean "last".
 const ReadingsSchema = z.array(ReadingSchema).transform((readings) => readings.sort((a, b) => a.at.getTime() - b.at.getTime()))
 
-async function getJson<T>(path: string, schema: z.ZodType<T, z.ZodTypeDef, unknown>): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`)
+async function getJson<T>(path: string, schema: z.ZodType<T, z.ZodTypeDef, unknown>, signal?: AbortSignal): Promise<T> {
+  const response = await fetch(`${API_BASE_URL}${path}`, { signal })
   if (!response.ok) {
     throw new Error(`GET ${path} failed: ${response.status}`)
   }
@@ -71,9 +71,9 @@ export const AirQualityApi = {
 
   getLocationSensors: (locationId: number) => getJson(`/locations/${locationId}/sensors`, z.array(SensorSchema)),
 
-  getSensorReadingHistory: (sensorId: number, from: Date, to: Date) => {
+  getSensorReadingHistory: (sensorId: number, from: Date, to: Date, signal?: AbortSignal) => {
     const params = new URLSearchParams({ from: toLocalIsoString(from), to: toLocalIsoString(to) })
-    return getJson(`/sensors/${sensorId}/readings?${params}`, ReadingsSchema)
+    return getJson(`/sensors/${sensorId}/readings?${params}`, ReadingsSchema, signal)
   },
 }
 
