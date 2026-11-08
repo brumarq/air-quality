@@ -8,7 +8,7 @@ import { eschNo2History } from "@/test/esch"
 
 beforeAll(stubFetchWithFixtures)
 
-const no2 = POLLUTANT_LIMITS[0]
+const no2 = POLLUTANT_LIMITS.no2
 
 describe("StationLimitBar on real Esch NO2 readings (characterization)", () => {
   it.each([
@@ -18,7 +18,7 @@ describe("StationLimitBar on real Esch NO2 readings (characterization)", () => {
   ])("%s", async (_name, days, live) => {
     const { history } = await eschNo2History(days)
     const text = history.map(({ station, points }) =>
-      no2 ? render(<StationLimitBar station={station} color="" points={points} limit={no2} live={live} />).container.textContent : "",
+      render(<StationLimitBar station={station} color="" points={points} limit={no2} live={live} />).container.textContent,
     )
     expect(text).toMatchSnapshot()
   })

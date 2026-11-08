@@ -4,7 +4,7 @@ import Link from "next/link"
 import { ChevronDown, Map, MapPin } from "lucide-react"
 import type { CommuneConfig } from "@/domain/communes"
 import { communes } from "@/domain/communes"
-import { TIME_RANGES } from "@/domain/time-ranges"
+import { RANGE_KEYS, TIME_RANGES, isRangeKey, type RangeKey } from "@/domain/time-ranges"
 import { Badge } from "@/components/ui/badge"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { Card, CardContent } from "@/components/ui/card"
@@ -21,8 +21,8 @@ interface CommuneHeaderCardProps {
   communeConfig: CommuneConfig
   mode: AreaMode
   onSelectMode: (mode: AreaMode) => void
-  selectedRangeKey: string
-  onSelectRange: (key: string) => void
+  selectedRangeKey: RangeKey
+  onSelectRange: (key: RangeKey) => void
 }
 
 export function CommuneHeaderCard({
@@ -100,10 +100,11 @@ export function CommuneHeaderCard({
             <ToggleGroup
               type="single"
               value={selectedRangeKey}
-              onValueChange={(value) => value && onSelectRange(value)}
-              className="bg-muted rounded-lg p-1 gap-1 grid grid-cols-5"
+              onValueChange={(value) => isRangeKey(value) && onSelectRange(value)}
+              className="bg-muted rounded-lg p-1 gap-1 grid"
+              style={{ gridTemplateColumns: `repeat(${RANGE_KEYS.length}, minmax(0, 1fr))` }}
             >
-              {TIME_RANGES.map((range) => (
+              {RANGE_KEYS.map((key) => TIME_RANGES[key]).map((range) => (
                 <ToggleGroupItem
                   key={range.key}
                   value={range.key}

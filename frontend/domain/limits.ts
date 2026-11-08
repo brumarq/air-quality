@@ -1,5 +1,9 @@
+/** The pollutants the app compares against EU limits, in display order. */
+export const POLLUTANT_PARAMETERS = ["no2", "pm25", "pm10"] as const
+export type PollutantParameter = (typeof POLLUTANT_PARAMETERS)[number]
+
 export interface PollutantLimit {
-  parameter: string
+  parameter: PollutantParameter
   label: string
   unit: string
   limitToday: number
@@ -9,11 +13,11 @@ export interface PollutantLimit {
 // limit2030 values come from market research (Directive 2024/2881); limitToday values
 // are from memory and still need a check against the Directive 2008/50/EC text (see
 // ESCH-HEAT-PROFILE-PLAN.md) before these are shown to anyone outside the team.
-export const POLLUTANT_LIMITS: PollutantLimit[] = [
-  { parameter: "no2", label: "NO₂", unit: "µg/m³", limitToday: 40, limit2030: 20 },
-  { parameter: "pm25", label: "PM2.5", unit: "µg/m³", limitToday: 25, limit2030: 10 },
-  { parameter: "pm10", label: "PM10", unit: "µg/m³", limitToday: 40, limit2030: 20 },
-]
+export const POLLUTANT_LIMITS: Record<PollutantParameter, PollutantLimit> = {
+  no2: { parameter: "no2", label: "NO₂", unit: "µg/m³", limitToday: 40, limit2030: 20 },
+  pm25: { parameter: "pm25", label: "PM2.5", unit: "µg/m³", limitToday: 25, limit2030: 10 },
+  pm10: { parameter: "pm10", label: "PM10", unit: "µg/m³", limitToday: 40, limit2030: 20 },
+}
 
 export type LimitStatus = "below-2030" | "above-2030" | "above-today"
 

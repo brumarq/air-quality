@@ -1,4 +1,5 @@
 import type { StationHistory } from "@/domain/air-quality"
+import type { RangeKey } from "@/domain/time-ranges"
 
 export type ChartRow = { timestamp: string } & Record<string, number | string>
 
@@ -71,16 +72,17 @@ const STRATEGIES: Record<string, BucketStrategy> = {
   },
 }
 
-function strategyForRange(rangeKey: string): BucketStrategy {
+function strategyForRange(rangeKey: RangeKey): BucketStrategy {
   switch (rangeKey) {
+    case "live":
+    case "day":
+      return STRATEGIES.hourly
     case "week":
       return STRATEGIES.eightHourly
     case "month":
       return STRATEGIES.daily
     case "year":
       return STRATEGIES.monthly
-    default: // "live" and "day"
-      return STRATEGIES.hourly
   }
 }
 
@@ -91,7 +93,7 @@ function strategyForRange(rangeKey: string): BucketStrategy {
  */
 export function bucketTrendData(
   history: StationHistory[],
-  rangeKey: string,
+  rangeKey: RangeKey,
   from: Date,
   to: Date
 ): { rows: ChartRow[]; formatTick: (timestamp: string) => string } {

@@ -6,11 +6,11 @@ import type { AirQualityStation, Reading } from "@/domain/air-quality"
 import { StationLimitBar } from "./station-limit-bar"
 
 const station: AirQualityStation = { id: "1", name: "Esch/Alzette", lat: 0, lng: 0 }
-const no2 = POLLUTANT_LIMITS[0]
+const no2 = POLLUTANT_LIMITS.no2
 const utc = (iso: string) => new Date(Date.parse(iso))
 
 function barText(points: Reading[], live: boolean) {
-  return no2 ? render(<StationLimitBar station={station} color="" points={points} limit={no2} live={live} />).container.textContent : ""
+  return render(<StationLimitBar station={station} color="" points={points} limit={no2} live={live} />).container.textContent
 }
 
 describe("StationLimitBar", () => {

@@ -11,8 +11,8 @@ import type { MapStatus } from "@/map/use-mapbox-instance"
 import { CommuneHeaderCard, type AreaMode } from "./commune-header-card"
 import { ReportCard } from "./report-card"
 import { AirQualityStation } from "@/domain/air-quality"
-import { POLLUTANT_LIMITS } from "@/domain/limits"
-import { TIME_RANGES } from "@/domain/time-ranges"
+import { POLLUTANT_LIMITS, type PollutantParameter } from "@/domain/limits"
+import { TIME_RANGES, type RangeKey } from "@/domain/time-ranges"
 import { getNo2TubeDataset } from "@/api/no2-tubes"
 import { getHeatYears } from "@/domain/heat"
 import type { CommuneConfig } from "@/domain/communes"
@@ -42,11 +42,11 @@ export function MapContainer({
 
   const [mode, setMode] = useState<AreaMode>("air")
 
-  const [selectedParameter, setSelectedParameter] = useState(POLLUTANT_LIMITS[0].parameter)
-  const selectedLimit = POLLUTANT_LIMITS.find((limit) => limit.parameter === selectedParameter)!
+  const [selectedParameter, setSelectedParameter] = useState<PollutantParameter>("no2")
+  const selectedLimit = POLLUTANT_LIMITS[selectedParameter]
 
-  const [selectedRangeKey, setSelectedRangeKey] = useState(TIME_RANGES[0].key)
-  const selectedRange = TIME_RANGES.find((range) => range.key === selectedRangeKey)!
+  const [selectedRangeKey, setSelectedRangeKey] = useState<RangeKey>("live")
+  const selectedRange = TIME_RANGES[selectedRangeKey]
 
   // Heat mode has no data fetching need yet.
   const history = useSensorHistory(mode === "air" ? stations : [], selectedLimit, selectedRange.days)
