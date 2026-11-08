@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react"
 import { MapContainer } from "./map-container"
 import { useMapboxInstance } from "@/map/use-mapbox-instance"
-import { useLuxembourgBoundary } from "@/map/luxembourg-boundary"
+import { useBoundsOutline } from "@/map/use-bounds-outline"
+import { LUXEMBOURG } from "@/content/areas/luxembourg"
 import { useStationLayers } from "@/features/air-quality"
 import { getAirQualityStations } from "@/api/air-quality"
 import type { AirQualityStation } from "@/domain/air-quality"
@@ -38,9 +39,8 @@ export function MapLayout({ area }: MapLayoutProps) {
     center: [area.center[0], area.center[1]],
     zoom: area.zoom,
   })
-  const mapLoaded = map !== null
-  useLuxembourgBoundary(map, mapLoaded)
-  useStationLayers(map, mapLoaded, stations)
+  useBoundsOutline(map, LUXEMBOURG.bounds)
+  useStationLayers(map, stations)
 
   return (
     stationsLoaded && (

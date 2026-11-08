@@ -12,6 +12,8 @@ interface AreaBase {
 /** The national overview: every station, no commune datasets. */
 export interface CountryArea extends AreaBase {
   kind: "country"
+  /** South-west and north-east corners of the box outlined on every map, for orientation. */
+  bounds: readonly [LngLat, LngLat]
 }
 
 /** One commune's profile page, at /communes/<slug>. */
