@@ -26,7 +26,7 @@ export function useMapInteractions({ map, mapLoaded, stations }: UseMapInteracti
     const handleStationClick = (e: mapboxgl.MapMouseEvent) => {
       if (!e.features || !e.features[0]) return
 
-      const geometry = e.features[0].geometry as any
+      const geometry = e.features[0].geometry as GeoJSON.Point
       const coordinates = geometry.coordinates.slice()
       const properties = e.features[0].properties
 

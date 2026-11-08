@@ -25,7 +25,7 @@ import type { CommuneConfig } from "@/data/communes"
 
 interface MapContainerProps {
   sidebarCollapsed: boolean
-  mapContainer: React.RefObject<HTMLDivElement | null>
+  mapContainer: React.RefCallback<HTMLDivElement>
   map: mapboxgl.Map | null
   mapLoaded: boolean
   stations: AirQualityStation[]
@@ -96,7 +96,6 @@ export function MapContainer({
     if (selectedCellId) setHeatSelection({ type: "cell", id: selectedCellId })
     else if (selectedBuildingId) setHeatSelection({ type: "building", id: selectedBuildingId })
     else setHeatSelection(null)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCellId, selectedBuildingId])
 
   useEffect(() => {

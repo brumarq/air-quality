@@ -101,7 +101,7 @@ export function HeatDetailCard({ data, selection, year, onBack }: HeatDetailCard
 
           <p className="text-xs text-muted-foreground pt-3 mt-2 border-t">
             Surface temperature (not air temperature), median of cloud-free Landsat 8/9 scenes, June-August {year},
-            morning pass ~11:00. Anomaly is relative to that year's commune-wide mean, not an absolute heat-risk
+            morning pass ~11:00. Anomaly is relative to that year&apos;s commune-wide mean, not an absolute heat-risk
             rating.
           </p>
         </CardContent>
@@ -141,7 +141,7 @@ export function HeatDetailCard({ data, selection, year, onBack }: HeatDetailCard
           </p>
         </div>
         <p className="text-xs text-muted-foreground">
-          Location from OpenStreetMap, nearest-cell match — a point, not the building's full footprint. Source:
+          Location from OpenStreetMap, nearest-cell match — a point, not the building&apos;s full footprint. Source:
           cloud-free Landsat 8/9, June-August {year}.
         </p>
       </CardContent>

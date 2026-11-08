@@ -5,7 +5,7 @@ import { useCallback, useEffect } from "react"
 /**
  * Hook to handle map resize when layout changes occur
  */
-export function useMapResize(map: mapboxgl.Map | null, trigger: any) {
+export function useMapResize(map: mapboxgl.Map | null, trigger: unknown) {
   const handleResize = useCallback(() => {
     if (map) {
       map.resize()
