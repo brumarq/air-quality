@@ -6,7 +6,7 @@ RUN apk add --no-cache libc6-compat
 WORKDIR /app
 COPY package.json package-lock.json ./
 # Use lgecay peers because of dependency issues
-RUN npm ci --legacy-peer-deps
+RUN npm ci
 
 # Build the Next.js app
 FROM base AS builder

@@ -43,7 +43,7 @@ jobs:
       - name: Install, check and build
         working-directory: frontend
         run: |
-          npm ci --legacy-peer-deps
+          npm ci
           npm run check
           npm run build
 
