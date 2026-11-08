@@ -17,13 +17,22 @@ const PARENT_RELATIVE_IMPORT = {
   message: "Use an \"@/...\" import instead of \"../\".",
 }
 const ban = (groups, message) => ({ group: groups, message })
+
+// no-restricted-imports doesn't look at import(), so a dynamic import would get past every
+// rule above. Only app/ may use one (next/dynamic). ESLint replaces rather than merges a
+// rule's options across config blocks, so every block that sets no-restricted-syntax
+// must include this entry.
+const NO_DYNAMIC_IMPORT = {
+  selector: "ImportExpression",
+  message: "Dynamic import() bypasses the layer rules. Only app/ may use it (for next/dynamic).",
+}
 const restrict = (files, patterns) => ({
   files,
   rules: { "no-restricted-imports": ["error", { patterns: [DEEP_FEATURE_IMPORT, PARENT_RELATIVE_IMPORT, ...patterns] }] },
 })
 
 const eslintConfig = [
-  { ignores: [".next/**", ".next-e2e/**", "test-results/**", "playwright-report/**", "node_modules/**", "public/**", "next-env.d.ts"] },
+  { ignores: ["lint-fixtures/**", ".next/**", ".next-e2e/**", "test-results/**", "playwright-report/**", "node_modules/**", "public/**", "next-env.d.ts"] },
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
     rules: {
@@ -36,6 +45,11 @@ const eslintConfig = [
     // Tailwind's config is CommonJS and loads plugins with require()
     files: ["tailwind.config.js"],
     rules: { "@typescript-eslint/no-require-imports": "off" },
+  },
+  {
+    files: ["**/*.{ts,tsx,js,mjs}"],
+    ignores: ["app/**"],
+    rules: { "no-restricted-syntax": ["error", NO_DYNAMIC_IMPORT] },
   },
   restrict(["app/**"], []),
   restrict(["features/**"], [
