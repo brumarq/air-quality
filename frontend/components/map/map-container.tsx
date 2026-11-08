@@ -1,22 +1,25 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import "mapbox-gl/dist/mapbox-gl.css"
 import { useMapResize } from "@/hooks/use-map-resize"
 import { CustomMapControls } from "./custom-map-controls"
 import { CommuneHeaderCard, type AreaMode } from "@/components/communes/commune-header-card"
 import { CommuneReadingsPanel } from "@/components/communes/commune-readings-panel"
-import { HeatPlaceholderCard } from "@/components/communes/heat-placeholder-card"
 import { PollutantTrendChart } from "@/components/communes/pollutant-trend-chart"
 import { NO2ReductionCard } from "@/components/communes/no2-reduction-card"
 import { NO2TubeDetailCard } from "@/components/communes/no2-tube-detail-card"
+import { HeatMapCard } from "@/components/communes/heat-map-card"
+import { HeatDetailCard, type HeatSelection } from "@/components/communes/heat-detail-card"
 import { ReportCard } from "@/components/communes/report-card"
 import { AirQualityStation } from "@/lib/types/air-quality"
 import { POLLUTANT_LIMITS } from "@/lib/constants/air-quality-limits"
 import { TIME_RANGES } from "@/lib/constants/time-ranges"
 import { useSensorHistory } from "@/hooks/use-sensor-history"
 import { useNo2TubeMarkers } from "@/hooks/use-no2-tube-markers"
+import { useHeatMapLayers, type HeatLayerToggles } from "@/hooks/use-heat-map-layers"
 import { getNo2TubeDataset } from "@/lib/no2-tubes"
+import { getHeatYears } from "@/lib/heat-map"
 import type { CommuneConfig } from "@/data/communes"
 
 interface MapContainerProps {
@@ -61,6 +64,52 @@ export function MapContainer({
     dataset: tubeDataset,
     visible: mode === "air",
   })
+
+  // Heat mode: see ESCH-HEAT-PROFILE-PLAN.md Step 3, Week 2. Grid + buildings shown by
+  // default; NDVI and the PRO-SUD study overlay are off by default to avoid clutter.
+  const [heatYear, setHeatYear] = useState(2025)
+  const [heatToggles, setHeatToggles] = useState<HeatLayerToggles>({
+    grid: true,
+    ndvi: false,
+    buildings: true,
+    prosudWms: false,
+  })
+  const [heatSelection, setHeatSelection] = useState<HeatSelection | null>(null)
+
+  const {
+    data: heatData,
+    selectedCellId,
+    setSelectedCellId,
+    selectedBuildingId,
+    setSelectedBuildingId,
+  } = useHeatMapLayers({
+    map,
+    mapLoaded,
+    communeSlug: communeConfig.slug,
+    visible: mode === "heat",
+    year: heatYear,
+    toggles: heatToggles,
+  })
+
+  useEffect(() => {
+    if (selectedCellId) setHeatSelection({ type: "cell", id: selectedCellId })
+    else if (selectedBuildingId) setHeatSelection({ type: "building", id: selectedBuildingId })
+    else setHeatSelection(null)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCellId, selectedBuildingId])
+
+  useEffect(() => {
+    if (heatData) {
+      const years = getHeatYears(heatData.stats)
+      if (years.length && !years.includes(heatYear)) setHeatYear(years[years.length - 1])
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [heatData])
+
+  function clearHeatSelection() {
+    setSelectedCellId(null)
+    setSelectedBuildingId(null)
+  }
 
   return (
     <div className="relative flex-1 h-full">
@@ -112,7 +161,19 @@ export function MapContainer({
                 ))}
             </>
           ) : (
-            <HeatPlaceholderCard />
+            <>
+              {heatSelection ? (
+                heatData && <HeatDetailCard data={heatData} selection={heatSelection} year={heatYear} onBack={clearHeatSelection} />
+              ) : (
+                <HeatMapCard
+                  stats={heatData?.stats ?? null}
+                  year={heatYear}
+                  onSelectYear={setHeatYear}
+                  toggles={heatToggles}
+                  onToggle={(key, value) => setHeatToggles((prev) => ({ ...prev, [key]: value }))}
+                />
+              )}
+            </>
           )}
         </div>
 
