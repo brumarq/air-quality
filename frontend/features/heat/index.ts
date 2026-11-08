@@ -2,5 +2,6 @@
 // not from files inside this folder.
 export { HeatDetailCard, type HeatSelection } from "./heat-detail-card"
 export { HeatMapCard } from "./heat-map-card"
+export { HeatMessage } from "./heat-message"
 export { HeatStoryPanel } from "./heat-story-panel"
 export { useHeatMapLayers, type HeatLayerToggles } from "./use-heat-map-layers"

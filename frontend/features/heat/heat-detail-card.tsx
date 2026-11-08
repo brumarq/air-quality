@@ -4,7 +4,7 @@ import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 
 import { ArrowLeft } from "lucide-react"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { getHeatYears, BUILDING_KIND_LABEL, type HeatMapData } from "@/domain/heat"
+import { BUILDING_KIND_LABEL, cellYear, statsForYear, type HeatMapData } from "@/domain/heat"
 
 export type HeatSelection = { type: "cell"; id: string } | { type: "building"; id: string }
 
@@ -25,20 +25,13 @@ function anomalyColor(value: number | null) {
 }
 
 export function HeatDetailCard({ data, selection, year, onBack }: HeatDetailCardProps) {
-  const years = getHeatYears(data.stats)
-
   if (selection.type === "cell") {
-    const cell = data.grid.features.find((f) => f.properties.id === selection.id)
+    const cell = data.cells.find((c) => c.id === selection.id)
     if (!cell) return null
 
-    const rows = years.map((y) => ({
-      year: String(y),
-      anomaly: cell.properties[`anomaly_c_${y}`] ?? null,
-      temp: cell.properties[`temp_c_${y}`] ?? null,
-      ndvi: cell.properties[`ndvi_${y}`] ?? null,
-    }))
+    const rows = cell.years.map((y) => ({ year: String(y.year), anomaly: y.anomalyC, temp: y.tempC, ndvi: y.ndvi }))
     const current = rows.find((r) => r.year === String(year))
-    const nearbyBuildings = data.buildings.features.filter((b) => b.properties.nearest_cell_id === selection.id)
+    const nearbyBuildings = data.buildings.filter((b) => b.nearestCellId === selection.id)
 
     return (
       <Card className="pointer-events-auto w-96 shadow-lg">
@@ -91,8 +84,8 @@ export function HeatDetailCard({ data, selection, year, onBack }: HeatDetailCard
             <div className="pt-3 mt-2 border-t">
               <p className="text-xs font-medium mb-1">Nearest sensitive buildings</p>
               {nearbyBuildings.map((b) => (
-                <p key={b.properties.osm_id} className="text-xs text-muted-foreground">
-                  {BUILDING_KIND_LABEL[b.properties.kind]} — {b.properties.name}
+                <p key={b.osmId} className="text-xs text-muted-foreground">
+                  {BUILDING_KIND_LABEL[b.kind]} — {b.name ?? "(unnamed)"}
                 </p>
               ))}
             </div>
@@ -108,13 +101,12 @@ export function HeatDetailCard({ data, selection, year, onBack }: HeatDetailCard
     )
   }
 
-  const building = data.buildings.features.find((f) => f.properties.osm_id === selection.id)
+  const building = data.buildings.find((b) => b.osmId === selection.id)
   if (!building) return null
 
-  const cell = data.grid.features.find((f) => f.properties.id === building.properties.nearest_cell_id)
-  const currentAnomaly = cell?.properties[`anomaly_c_${year}`] ?? null
-  const yearStats = data.stats.years[String(year)]
-  const inHottest10pct = yearStats?.hottest_cell_ids.includes(building.properties.nearest_cell_id) ?? false
+  const cell = data.cells.find((c) => c.id === building.nearestCellId)
+  const currentAnomaly = (cell && cellYear(cell, year)?.anomalyC) ?? null
+  const inHottest10pct = statsForYear(data, year)?.hottestCellIds.includes(building.nearestCellId) ?? false
 
   return (
     <Card className="pointer-events-auto w-96 shadow-lg">
@@ -124,8 +116,8 @@ export function HeatDetailCard({ data, selection, year, onBack }: HeatDetailCard
           Back to map
         </Button>
         <div>
-          <h3 className="font-semibold text-sm">{building.properties.name}</h3>
-          <p className="text-xs text-muted-foreground">{BUILDING_KIND_LABEL[building.properties.kind]}</p>
+          <h3 className="font-semibold text-sm">{building.name ?? "(unnamed)"}</h3>
+          <p className="text-xs text-muted-foreground">{BUILDING_KIND_LABEL[building.kind]}</p>
         </div>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">

@@ -36,7 +36,7 @@ export function HeatHotspotList({
   const barPct = (t: number) => ((t - scaleMin) / (scaleMax - scaleMin)) * 100
 
   function flyTo(p: StudyComparisonPoint) {
-    map?.flyTo({ center: [p.lon, p.lat], zoom: 16 })
+    map?.flyTo({ center: [p.lngLat[0], p.lngLat[1]], zoom: 16 })
   }
 
   function Row({ p }: { p: StudyComparisonPoint }) {

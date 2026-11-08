@@ -1,44 +1,58 @@
-// Heat-map data model: shapes of the pipeline's output files and pure helpers over them.
+// Heat-map data: surface temperature per ~100m grid cell from summer Landsat scenes, the
+// commune's sensitive buildings, and per-year summary statistics, all prepared by the
+// heat pipeline in scripts/. api/heat.ts parses the pipeline's files into these types.
 
-export interface HeatGridCellProperties {
+import type { LngLat } from "@/domain/shared/geo"
+
+export type BuildingKind = "school" | "kindergarten" | "care_facility"
+
+export const BUILDING_KIND_LABEL: Record<BuildingKind, string> = {
+  school: "School",
+  kindergarten: "Kindergarten / crèche",
+  care_facility: "Care facility",
+}
+
+/** One summer's values for a grid cell. Any of them can be missing (e.g. clouds every pass). */
+export interface HeatCellYear {
+  year: number
+  tempC: number | null
+  /** Surface temperature minus that summer's commune-wide mean. */
+  anomalyC: number | null
+  ndvi: number | null
+}
+
+export interface HeatCell {
   id: string
-  is_industrial: boolean
-  [key: `temp_c_${number}`]: number | null
-  [key: `anomaly_c_${number}`]: number | null
-  [key: `ndvi_${number}`]: number | null
+  isIndustrial: boolean
+  polygon: GeoJSON.Polygon
+  /** One entry per year in HeatMapData.years, in the same order. */
+  years: HeatCellYear[]
 }
 
-export interface HeatStatsYear {
-  commune_mean_c: number
-  hottest_10pct_threshold_anomaly_c: number | null
-  hottest_10pct_cell_count: number
-  hottest_cell_ids: string[]
-  sensitive_buildings_in_hottest_10pct: { name: string; kind: string; osm_id: string }[]
-  // "hottest 10%" excludes private industrial land (e.g. the active ArcelorMittal Belval
-  // plant) - that land reads hottest of all, but it's not something a commune officer
-  // has any lever over, and including it was crowding real school hotspots out of this
-  // set entirely. industrial_max_anomaly_c is that excluded land's own worst reading,
-  // shown as its own stat rather than hidden.
-  industrial_max_anomaly_c: number | null
-  industrial_cell_count: number
-  hottest_non_industrial_anomaly_c: number | null
-  hottest_non_industrial_place: string | null
-  hottest_non_industrial_lat: number | null
-  hottest_non_industrial_lon: number | null
+export interface SensitiveBuilding {
+  osmId: string
+  /** null when OpenStreetMap has no name for it. */
+  name: string | null
+  kind: BuildingKind
+  nearestCellId: string
+  lngLat: LngLat
 }
 
-export interface HeatStats {
-  generatedAt: string
-  gridCellSizeMeters: number
-  gridCellCount: number
-  years: Record<string, HeatStatsYear>
-}
-
-export interface SensitiveBuildingProperties {
-  osm_id: string
-  name: string
-  kind: "school" | "kindergarten" | "care_facility"
-  nearest_cell_id: string
+export interface HeatYearStats {
+  year: number
+  communeMeanC: number
+  hottest10pctThresholdAnomalyC: number | null
+  hottest10pctCellCount: number
+  hottestCellIds: string[]
+  sensitiveBuildingsInHottest10pct: { osmId: string; name: string | null; kind: BuildingKind }[]
+  // "Hottest 10%" excludes private industrial land (e.g. the active ArcelorMittal Belval
+  // plant). That land reads hottest of all, but a commune officer has no lever over it,
+  // and including it crowded real school hotspots out of the set. Its own worst reading
+  // is kept here as a separate stat rather than hidden.
+  industrialMaxAnomalyC: number | null
+  industrialCellCount: number
+  /** The hottest cell outside industrial land, or null if there's no reading for it. */
+  hottestNonIndustrial: { anomalyC: number; place: string | null; lngLat: LngLat | null } | null
 }
 
 export interface StudyComparisonPoint {
@@ -46,10 +60,10 @@ export interface StudyComparisonPoint {
   studySays: "hot" | "cool"
   tempC: number
   approximate: boolean
-  lat: number
-  lon: number
+  lngLat: LngLat
 }
 
+/** Satellite readings at the spots a commune's own heat study named hot or cool. */
 export interface StudyComparison {
   method: string
   points: StudyComparisonPoint[]
@@ -59,29 +73,24 @@ export interface StudyComparison {
 }
 
 export interface HeatMapData {
-  grid: GeoJSON.FeatureCollection<GeoJSON.Polygon, HeatGridCellProperties>
+  /** The summers covered, oldest first. */
+  years: number[]
+  cells: HeatCell[]
   boundary: GeoJSON.Feature<GeoJSON.Polygon | GeoJSON.MultiPolygon>
-  buildings: GeoJSON.FeatureCollection<GeoJSON.Point, SensitiveBuildingProperties>
-  stats: HeatStats
+  buildings: SensitiveBuilding[]
+  /** One entry per year in `years`, in the same order. */
+  stats: HeatYearStats[]
   studyComparison: StudyComparison | null
 }
 
-export function getHeatYears(stats: HeatStats): number[] {
-  return Object.keys(stats.years).map(Number).sort((a, b) => a - b)
+export function statsForYear(data: HeatMapData, year: number): HeatYearStats | null {
+  return data.stats.find((s) => s.year === year) ?? null
 }
 
-// Anomaly (°C) to color, shared by the map fill and the legend.
-export const HEAT_LEGEND_STOPS: [number, string][] = [
-  [-10, "#2166AC"],
-  [-5, "#67A9CF"],
-  [0, "#F7F7F7"],
-  [5, "#FDDBC7"],
-  [8, "#EF8A62"],
-  [12, "#B2182B"],
-]
+export function cellYear(cell: HeatCell, year: number): HeatCellYear | null {
+  return cell.years.find((y) => y.year === year) ?? null
+}
 
-export const BUILDING_KIND_LABEL: Record<SensitiveBuildingProperties["kind"], string> = {
-  school: "School",
-  kindergarten: "Kindergarten / crèche",
-  care_facility: "Care facility",
+export function latestHeatYear(data: HeatMapData): number | null {
+  return data.years.at(-1) ?? null
 }

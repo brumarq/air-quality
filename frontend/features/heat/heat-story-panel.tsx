@@ -2,7 +2,7 @@
 
 import type mapboxgl from "mapbox-gl"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { getHeatYears, type HeatMapData } from "@/domain/heat"
+import { latestHeatYear, statsForYear, type HeatMapData } from "@/domain/heat"
 import { NO2_LIMITS } from "@/domain/limits"
 import { getReductionNeeded, type No2TubeDataset } from "@/domain/no2-tubes"
 import { HeatHotspotList } from "./heat-hotspot-list"
@@ -15,24 +15,24 @@ interface HeatStoryPanelProps {
 }
 
 export function HeatStoryPanel({ data, communeName, tubeDataset, map }: HeatStoryPanelProps) {
-  const years = getHeatYears(data.stats)
-  const latestYear = years[years.length - 1]
-  const latestYearStats = data.stats.years[String(latestYear)]
+  const years = data.years
+  const latestYear = latestHeatYear(data)
+  const latestYearStats = latestYear === null ? null : statsForYear(data, latestYear)
   const study = data.studyComparison
 
   // Per-building count of how many of the {years.length} summers it landed in the
   // (non-industrial) hottest 10% - keyed by osm_id, not name, since two unnamed
   // facilities would otherwise collide under the same "(unnamed)" label.
-  const buildingYearCounts = new Map<string, { name: string; count: number }>()
-  for (const y of years) {
-    for (const b of data.stats.years[String(y)].sensitive_buildings_in_hottest_10pct) {
-      const existing = buildingYearCounts.get(b.osm_id)
+  const buildingYearCounts = new Map<string, { name: string | null; count: number }>()
+  for (const yearStats of data.stats) {
+    for (const b of yearStats.sensitiveBuildingsInHottest10pct) {
+      const existing = buildingYearCounts.get(b.osmId)
       if (existing) existing.count += 1
-      else buildingYearCounts.set(b.osm_id, { name: b.name, count: 1 })
+      else buildingYearCounts.set(b.osmId, { name: b.name, count: 1 })
     }
   }
   const namedBuildings = [...buildingYearCounts.values()]
-    .filter((b) => b.name !== "(unnamed)")
+    .flatMap((b) => (b.name === null ? [] : [{ name: b.name, count: b.count }]))
     .sort((a, b) => b.count - a.count)
   const totalEverHottest = buildingYearCounts.size
   const namedShown = namedBuildings.slice(0, 2)
@@ -47,9 +47,8 @@ export function HeatStoryPanel({ data, communeName, tubeDataset, map }: HeatStor
     : undefined
 
   function flyToHottestSpot() {
-    if (map && latestYearStats?.hottest_non_industrial_lat != null && latestYearStats?.hottest_non_industrial_lon != null) {
-      map.flyTo({ center: [latestYearStats.hottest_non_industrial_lon, latestYearStats.hottest_non_industrial_lat], zoom: 16 })
-    }
+    const lngLat = latestYearStats?.hottestNonIndustrial?.lngLat
+    if (map && lngLat) map.flyTo({ center: [lngLat[0], lngLat[1]], zoom: 16 })
   }
 
   return (
@@ -98,22 +97,22 @@ export function HeatStoryPanel({ data, communeName, tubeDataset, map }: HeatStor
           <button
             type="button"
             onClick={flyToHottestSpot}
-            disabled={!latestYearStats?.hottest_non_industrial_lat}
+            disabled={!latestYearStats?.hottestNonIndustrial?.lngLat}
             className="rounded-md bg-muted px-2.5 py-2 text-left hover:bg-muted/70 disabled:hover:bg-muted"
           >
             <div className="font-semibold text-base">
-              {latestYearStats?.hottest_non_industrial_anomaly_c != null
-                ? `+${latestYearStats.hottest_non_industrial_anomaly_c.toFixed(1)}°C`
+              {latestYearStats?.hottestNonIndustrial
+                ? `+${latestYearStats.hottestNonIndustrial.anomalyC.toFixed(1)}°C`
                 : "—"}
             </div>
             <div className="text-muted-foreground">
               Hottest public/residential spot, {latestYear}
-              {latestYearStats?.hottest_non_industrial_place ? ` — ${latestYearStats.hottest_non_industrial_place}` : ""}
+              {latestYearStats?.hottestNonIndustrial?.place ? ` — ${latestYearStats.hottestNonIndustrial.place}` : ""}
             </div>
           </button>
           <div className="rounded-md bg-muted px-2.5 py-2">
             <div className="font-semibold text-base">
-              {totalEverHottest} of {data.buildings.features.length}
+              {totalEverHottest} of {data.buildings.length}
             </div>
             <div className="text-muted-foreground">
               Schools &amp; care sites in the hottest 10%

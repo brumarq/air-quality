@@ -1,5 +1,6 @@
 import type mapboxgl from "mapbox-gl"
-import { HEAT_LEGEND_STOPS, type HeatMapData } from "@/domain/heat"
+import type { HeatCell, HeatMapData, SensitiveBuilding } from "@/domain/heat"
+import { tokens } from "@/theme/tokens"
 
 export const HEAT_GRID_SOURCE_ID = "heat-grid-data"
 export const HEAT_GRID_FILL_LAYER_ID = "heat-grid-fill"
@@ -20,11 +21,41 @@ function wmsTileUrl(layerId: number) {
   return `https://wms.geoportail.lu/public_map_layers/service?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=${layerId}&STYLES=&CRS=EPSG:3857&BBOX={bbox-epsg-3857}&WIDTH=256&HEIGHT=256&FORMAT=image/png&TRANSPARENT=true`
 }
 
+// Feature property names the paint expressions read. Per-year values are flattened onto
+// each feature because Mapbox expressions can only read plain properties.
+const anomalyProperty = (year: number) => `anomaly-${year}`
+const ndviProperty = (year: number) => `ndvi-${year}`
+
+export function heatGridGeoJson(cells: HeatCell[]): GeoJSON.FeatureCollection<GeoJSON.Polygon> {
+  return {
+    type: "FeatureCollection",
+    features: cells.map((cell) => ({
+      type: "Feature",
+      geometry: cell.polygon,
+      properties: {
+        id: cell.id,
+        ...Object.fromEntries(cell.years.flatMap((y) => [[anomalyProperty(y.year), y.anomalyC], [ndviProperty(y.year), y.ndvi]])),
+      },
+    })),
+  }
+}
+
+export function buildingsGeoJson(buildings: SensitiveBuilding[]): GeoJSON.FeatureCollection<GeoJSON.Point> {
+  return {
+    type: "FeatureCollection",
+    features: buildings.map((b) => ({
+      type: "Feature",
+      geometry: { type: "Point", coordinates: [b.lngLat[0], b.lngLat[1]] },
+      properties: { osmId: b.osmId, kind: b.kind },
+    })),
+  }
+}
+
 export function addHeatGridLayer(map: mapboxgl.Map, data: HeatMapData, year: number) {
   if (!map.getSource(HEAT_GRID_SOURCE_ID)) {
     // promoteId lets feature-state (the hover outline below) key off our own cell id,
     // which lives in properties.id - GeoJSON features have no top-level id otherwise.
-    map.addSource(HEAT_GRID_SOURCE_ID, { type: "geojson", data: data.grid, promoteId: "id" })
+    map.addSource(HEAT_GRID_SOURCE_ID, { type: "geojson", data: heatGridGeoJson(data.cells), promoteId: "id" })
   }
 
   if (!map.getLayer(HEAT_GRID_FILL_LAYER_ID)) {
@@ -92,7 +123,7 @@ const BUILDING_KIND_COLOR: Record<string, string> = {
 
 export function addHeatBuildingsLayer(map: mapboxgl.Map, data: HeatMapData) {
   if (!map.getSource(HEAT_BUILDINGS_SOURCE_ID)) {
-    map.addSource(HEAT_BUILDINGS_SOURCE_ID, { type: "geojson", data: data.buildings })
+    map.addSource(HEAT_BUILDINGS_SOURCE_ID, { type: "geojson", data: buildingsGeoJson(data.buildings) })
   }
   if (!map.getLayer(HEAT_BUILDINGS_LAYER_ID)) {
     map.addLayer({
@@ -127,7 +158,7 @@ export function removeHeatBuildingsLayer(map: mapboxgl.Map) {
 // a toggle, just not yet rendered at its own native sharpness.
 export function addHeatNdviLayer(map: mapboxgl.Map, data: HeatMapData, year: number) {
   if (!map.getSource(HEAT_NDVI_SOURCE_ID)) {
-    map.addSource(HEAT_NDVI_SOURCE_ID, { type: "geojson", data: data.grid })
+    map.addSource(HEAT_NDVI_SOURCE_ID, { type: "geojson", data: heatGridGeoJson(data.cells) })
   }
   if (!map.getLayer(HEAT_NDVI_FILL_LAYER_ID)) {
     map.addLayer({
@@ -136,11 +167,8 @@ export function addHeatNdviLayer(map: mapboxgl.Map, data: HeatMapData, year: num
       source: HEAT_NDVI_SOURCE_ID,
       paint: {
         "fill-color": [
-          "interpolate", ["linear"], ["coalesce", ["get", `ndvi_${year}`], -1],
-          -1, "#44403C",
-          0, "#FEF3C7",
-          0.5, "#84CC16",
-          0.9, "#166534",
+          "interpolate", ["linear"], ["coalesce", ["get", ndviProperty(year)], -1],
+          ...tokens.heat.ndvi.flat(),
         ],
         "fill-opacity": 0.75,
       },
@@ -151,11 +179,8 @@ export function addHeatNdviLayer(map: mapboxgl.Map, data: HeatMapData, year: num
 export function setHeatNdviYear(map: mapboxgl.Map, year: number) {
   if (map.getLayer(HEAT_NDVI_FILL_LAYER_ID)) {
     map.setPaintProperty(HEAT_NDVI_FILL_LAYER_ID, "fill-color", [
-      "interpolate", ["linear"], ["coalesce", ["get", `ndvi_${year}`], -1],
-      -1, "#44403C",
-      0, "#FEF3C7",
-      0.5, "#84CC16",
-      0.9, "#166534",
+      "interpolate", ["linear"], ["coalesce", ["get", ndviProperty(year)], -1],
+      ...tokens.heat.ndvi.flat(),
     ])
   }
 }
@@ -190,11 +215,11 @@ export function removeProsudWmsLayer(map: mapboxgl.Map) {
 
 /** A Mapbox GL `interpolate` expression over a fixed year's anomaly property. */
 export function anomalyFillExpression(year: number): mapboxgl.Expression {
-  const stops = HEAT_LEGEND_STOPS.flatMap(([stop, color]) => [stop, color])
+  const stops = tokens.heat.anomaly.flat()
   return [
     "interpolate",
     ["linear"],
-    ["coalesce", ["get", `anomaly_c_${year}`], -99],
+    ["coalesce", ["get", anomalyProperty(year)], -99],
     ...stops,
   ] as unknown as mapboxgl.Expression
 }

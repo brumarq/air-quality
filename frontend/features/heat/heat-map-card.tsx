@@ -3,11 +3,12 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
-import { HEAT_LEGEND_STOPS, type HeatStats, getHeatYears } from "@/domain/heat"
+import { statsForYear, type HeatMapData } from "@/domain/heat"
+import { tokens } from "@/theme/tokens"
 import type { HeatLayerToggles } from "./use-heat-map-layers"
 
 interface HeatMapCardProps {
-  stats: HeatStats | null
+  data: HeatMapData
   year: number
   onSelectYear: (year: number) => void
   toggles: HeatLayerToggles
@@ -21,19 +22,9 @@ const TOGGLE_LABELS: { key: keyof HeatLayerToggles; label: string; hint: string 
   { key: "prosudWms", label: "PRO-SUD study map", hint: "Their own modelled layer" },
 ]
 
-export function HeatMapCard({ stats, year, onSelectYear, toggles, onToggle }: HeatMapCardProps) {
-  const years = stats ? getHeatYears(stats) : []
-  const yearStats = stats?.years[String(year)]
-
-  if (!stats) {
-    return (
-      <Card className="pointer-events-auto w-96 shadow-lg">
-        <CardContent className="p-4">
-          <p className="text-sm text-muted-foreground">No heat-map data prepared for this commune yet.</p>
-        </CardContent>
-      </Card>
-    )
-  }
+export function HeatMapCard({ data, year, onSelectYear, toggles, onToggle }: HeatMapCardProps) {
+  const years = data.years
+  const yearStats = statsForYear(data, year)
 
   return (
     <Card className="pointer-events-auto w-96 shadow-lg">
@@ -65,18 +56,18 @@ export function HeatMapCard({ stats, year, onSelectYear, toggles, onToggle }: He
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div className="rounded-md bg-muted px-2 py-1.5">
               <div className="text-muted-foreground">Commune mean</div>
-              <div className="font-semibold text-sm">{yearStats.commune_mean_c.toFixed(1)}°C</div>
+              <div className="font-semibold text-sm">{yearStats.communeMeanC.toFixed(1)}°C</div>
             </div>
             <div className="rounded-md bg-muted px-2 py-1.5">
               <div className="text-muted-foreground">Hottest 10% of cells</div>
-              <div className="font-semibold text-sm">{yearStats.hottest_10pct_cell_count} cells</div>
+              <div className="font-semibold text-sm">{yearStats.hottest10pctCellCount} cells</div>
             </div>
           </div>
         )}
 
         <div className="flex flex-col gap-1">
           <div className="flex h-3 rounded-sm overflow-hidden">
-            {HEAT_LEGEND_STOPS.map(([, color]) => (
+            {tokens.heat.anomaly.map(([, color]) => (
               <span key={color} className="flex-1" style={{ background: color }} />
             ))}
           </div>

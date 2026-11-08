@@ -1,6 +1,8 @@
 // Real Esch data for tests: the captured backend readings and the static heat/NO2 files.
 import { AirQualityApi } from "@/api/air-quality"
+import { fetchHeatMapData } from "@/api/heat"
 import { fetchNo2TubeDataset } from "@/api/no2-tubes"
+import type { HeatMapData } from "@/domain/heat"
 import type { No2TubeDataset } from "@/domain/no2-tubes"
 import type { AirQualityStation, StationHistory } from "@/domain/air-quality"
 
@@ -33,5 +35,12 @@ export async function eschNo2History(days: number): Promise<{ history: StationHi
 export async function loadEschTubes(): Promise<No2TubeDataset> {
   const result = await fetchNo2TubeDataset("esch-sur-alzette")
   if (result.status !== "ok") throw new Error(`Esch tube data didn't load: ${result.status}`)
+  return result.data
+}
+
+/** The Esch heat files from public/data, through the real loader. Needs the fixture fetch stub. */
+export async function loadEschHeat(): Promise<HeatMapData> {
+  const result = await fetchHeatMapData("esch-sur-alzette")
+  if (result.status !== "ok") throw new Error(`Esch heat data didn't load: ${result.status}`)
   return result.data
 }

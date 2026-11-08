@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import "mapbox-gl/dist/mapbox-gl.css"
 import { CommuneReadingsPanel, PollutantTrendChart, useSensorHistory } from "@/features/air-quality"
-import { HeatDetailCard, HeatMapCard, HeatStoryPanel, useHeatMapLayers, type HeatLayerToggles, type HeatSelection } from "@/features/heat"
+import { HeatDetailCard, HeatMapCard, HeatMessage, HeatStoryPanel, useHeatMapLayers, type HeatLayerToggles, type HeatSelection } from "@/features/heat"
 import { NO2ReductionCard, NO2TubeDetailCard, NO2TubesMessage, useNo2TubeMarkers } from "@/features/no2-tubes"
 import { useMapResize } from "@/map/use-map-resize"
 import { CustomMapControls } from "@/map/custom-map-controls"
@@ -15,7 +15,6 @@ import { NO2_LIMITS, POLLUTANT_LIMITS, type PollutantParameter } from "@/domain/
 import { TIME_RANGES, type RangeKey } from "@/domain/time-ranges"
 import { fetchNo2TubeDataset } from "@/api/no2-tubes"
 import { useAsync } from "@/lib/use-async"
-import { getHeatYears } from "@/domain/heat"
 import type { CommuneConfig } from "@/domain/communes"
 
 interface MapContainerProps {
@@ -78,6 +77,7 @@ export function MapContainer({
   const [heatSelection, setHeatSelection] = useState<HeatSelection | null>(null)
 
   const {
+    load: heatLoad,
     data: heatData,
     selectedCellId,
     setSelectedCellId,
@@ -100,7 +100,7 @@ export function MapContainer({
 
   useEffect(() => {
     if (heatData) {
-      const years = getHeatYears(heatData.stats)
+      const years = heatData.years
       if (years.length && !years.includes(heatYear)) setHeatYear(years[years.length - 1])
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -179,11 +179,17 @@ export function MapContainer({
             </>
           ) : (
             <>
-              {heatSelection ? (
-                heatData && <HeatDetailCard data={heatData} selection={heatSelection} year={heatYear} onBack={clearHeatSelection} />
+              {heatLoad.status === "loading" ? (
+                <HeatMessage role="status">Loading heat-map data...</HeatMessage>
+              ) : heatLoad.status === "error" || heatLoad.data.status === "error" ? (
+                <HeatMessage role="alert">Couldn&apos;t load heat data.</HeatMessage>
+              ) : heatLoad.data.status === "not-prepared" ? (
+                <HeatMessage>No heat-map data prepared for this commune yet.</HeatMessage>
+              ) : heatSelection ? (
+                <HeatDetailCard data={heatLoad.data.data} selection={heatSelection} year={heatYear} onBack={clearHeatSelection} />
               ) : (
                 <HeatMapCard
-                  stats={heatData?.stats ?? null}
+                  data={heatLoad.data.data}
                   year={heatYear}
                   onSelectYear={setHeatYear}
                   toggles={heatToggles}

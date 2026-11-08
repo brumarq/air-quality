@@ -1,9 +1,9 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import { useAsync } from "@/lib/use-async"
 import type mapboxgl from "mapbox-gl"
 import { fetchHeatMapData } from "@/api/heat"
-import { type HeatMapData } from "@/domain/heat"
 import {
   addHeatGridLayer,
   removeHeatGridLayer,
@@ -43,21 +43,11 @@ interface UseHeatMapLayersProps {
  * independently as its toggle flips - see ESCH-HEAT-PROFILE-PLAN.md Step 3, Week 2.
  */
 export function useHeatMapLayers({ map, mapLoaded, communeSlug, visible, year, toggles }: UseHeatMapLayersProps) {
-  const [data, setData] = useState<HeatMapData | null>(null)
+  const load = useAsync(visible ? `heat|${communeSlug}` : null, (signal) => fetchHeatMapData(communeSlug, signal))
+  const data = load.status === "ready" && load.data.status === "ok" ? load.data.data : null
   const [selectedCellId, setSelectedCellId] = useState<string | null>(null)
   const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null)
   const hoveredIdRef = useRef<string | number | null>(null)
-
-  useEffect(() => {
-    if (!visible) return
-    let cancelled = false
-    fetchHeatMapData(communeSlug).then((result) => {
-      if (!cancelled) setData(result)
-    })
-    return () => {
-      cancelled = true
-    }
-  }, [communeSlug, visible])
 
   // Grid fill + hover + click. One effect for all three so the layer is guaranteed to
   // exist before listeners attach (same reasoning as use-no2-tube-markers.ts).
@@ -155,7 +145,7 @@ export function useHeatMapLayers({ map, mapLoaded, communeSlug, visible, year, t
     addHeatBuildingsLayer(map, data)
 
     const handleClick = (e: mapboxgl.MapMouseEvent & { features?: mapboxgl.MapboxGeoJSONFeature[] }) => {
-      const id = e.features?.[0]?.properties?.osm_id
+      const id = e.features?.[0]?.properties?.osmId
       if (typeof id === "string") {
         setSelectedBuildingId(id)
         setSelectedCellId(null)
@@ -191,5 +181,5 @@ export function useHeatMapLayers({ map, mapLoaded, communeSlug, visible, year, t
     return () => removeProsudWmsLayer(map)
   }, [map, mapLoaded, visible, toggles.prosudWms])
 
-  return { data, selectedCellId, setSelectedCellId, selectedBuildingId, setSelectedBuildingId }
+  return { load, data, selectedCellId, setSelectedCellId, selectedBuildingId, setSelectedBuildingId }
 }
