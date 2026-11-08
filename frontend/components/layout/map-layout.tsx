@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react"
 import { MapContainer } from "@/components/map/map-container"
 import { useMap } from "@/hooks/use-map"
-import { getAirQualityStations } from "@/data/air-quality-stations"
+import { getAirQualityStations } from "@/api/air-quality"
 import type { AirQualityStation } from "@/domain/air-quality"
-import { CommuneConfig } from "@/data/communes"
+import { CommuneConfig } from "@/domain/communes"
 
 interface MapLayoutProps {
   communeConfig: CommuneConfig
@@ -13,7 +13,7 @@ interface MapLayoutProps {
 
 // One layout for both the Luxembourg-wide view and a single commune: full-bleed map with
 // floating "islands" on top, no sidebar. The only difference between them is which area's
-// config (station IDs, center, zoom) gets passed in - see data/communes.ts.
+// config (station IDs, center, zoom) gets passed in - see domain/communes.ts.
 export function MapLayout({ communeConfig }: MapLayoutProps) {
   const [sidebarCollapsed] = useState(false)
   const [stations, setStations] = useState<AirQualityStation[]>([])

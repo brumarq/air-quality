@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import type mapboxgl from "mapbox-gl"
-import { fetchHeatMapData } from "@/lib/heat-map"
+import { fetchHeatMapData } from "@/api/heat"
 import { type HeatMapData } from "@/domain/heat"
 import {
   addHeatGridLayer,

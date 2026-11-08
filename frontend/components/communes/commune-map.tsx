@@ -1,7 +1,7 @@
 "use client"
 
 import dynamic from "next/dynamic"
-import type { CommuneConfig } from "@/data/communes"
+import type { CommuneConfig } from "@/domain/communes"
 
 const MapLayout = dynamic(() => import("@/components/layout/map-layout").then((m) => m.MapLayout), {
   ssr: false,

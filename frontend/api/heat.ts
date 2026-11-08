@@ -1,10 +1,9 @@
-// Loader + map styling for Step 3's heat-map data, built by scripts/build_esch_heat_grid.py
+// Loader for Step 3's heat-map data, built by scripts/build_esch_heat_grid.py
 // (see ESCH-HEAT-PROFILE-PLAN.md Step 3, Week 1). Fetched at runtime rather than
 // statically imported like the NO2 tube data (api/no2-tubes.ts) - the grid alone is
 // ~800KB, too large to bundle into every page load when only heat mode needs it.
 
-import type mapboxgl from "mapbox-gl"
-import { HEAT_LEGEND_STOPS, type HeatMapData } from "@/domain/heat"
+import type { HeatMapData } from "@/domain/heat"
 
 const cache = new Map<string, Promise<HeatMapData | null>>()
 
@@ -41,15 +40,4 @@ export function fetchHeatMapData(communeSlug: string): Promise<HeatMapData | nul
 
   cache.set(communeSlug, promise)
   return promise
-}
-
-/** A Mapbox GL `interpolate` expression over a fixed year's anomaly property. */
-export function anomalyFillExpression(year: number): mapboxgl.Expression {
-  const stops = HEAT_LEGEND_STOPS.flatMap(([stop, color]) => [stop, color])
-  return [
-    "interpolate",
-    ["linear"],
-    ["coalesce", ["get", `anomaly_c_${year}`], -99],
-    ...stops,
-  ] as unknown as mapboxgl.Expression
 }

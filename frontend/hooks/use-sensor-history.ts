@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { AirQualityApi } from "@/lib/api/air-quality"
+import { AirQualityApi } from "@/api/air-quality"
 import type { AirQualityStation, StationHistory } from "@/domain/air-quality"
 import type { PollutantLimit } from "@/domain/limits"
 

@@ -1,6 +1,5 @@
 import type mapboxgl from "mapbox-gl"
-import type { HeatMapData } from "@/domain/heat"
-import { anomalyFillExpression } from "@/lib/heat-map"
+import { HEAT_LEGEND_STOPS, type HeatMapData } from "@/domain/heat"
 
 export const HEAT_GRID_SOURCE_ID = "heat-grid-data"
 export const HEAT_GRID_FILL_LAYER_ID = "heat-grid-fill"
@@ -187,4 +186,15 @@ export function addProsudWmsLayer(map: mapboxgl.Map, layerId: number = 2922) {
 export function removeProsudWmsLayer(map: mapboxgl.Map) {
   if (map.getLayer(PROSUD_WMS_LAYER_ID)) map.removeLayer(PROSUD_WMS_LAYER_ID)
   if (map.getSource(PROSUD_WMS_SOURCE_ID)) map.removeSource(PROSUD_WMS_SOURCE_ID)
+}
+
+/** A Mapbox GL `interpolate` expression over a fixed year's anomaly property. */
+export function anomalyFillExpression(year: number): mapboxgl.Expression {
+  const stops = HEAT_LEGEND_STOPS.flatMap(([stop, color]) => [stop, color])
+  return [
+    "interpolate",
+    ["linear"],
+    ["coalesce", ["get", `anomaly_c_${year}`], -99],
+    ...stops,
+  ] as unknown as mapboxgl.Expression
 }

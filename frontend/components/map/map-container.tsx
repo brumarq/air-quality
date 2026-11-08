@@ -21,7 +21,7 @@ import { useNo2TubeMarkers } from "@/hooks/use-no2-tube-markers"
 import { useHeatMapLayers, type HeatLayerToggles } from "@/hooks/use-heat-map-layers"
 import { getNo2TubeDataset } from "@/api/no2-tubes"
 import { getHeatYears } from "@/domain/heat"
-import type { CommuneConfig } from "@/data/communes"
+import type { CommuneConfig } from "@/domain/communes"
 
 interface MapContainerProps {
   sidebarCollapsed: boolean

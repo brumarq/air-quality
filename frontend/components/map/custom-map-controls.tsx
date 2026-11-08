@@ -1,5 +1,5 @@
 import { Crosshair, Minus, Plus } from "lucide-react"
-import type { CommuneConfig } from "@/data/communes"
+import type { CommuneConfig } from "@/domain/communes"
 
 interface CustomMapControlsProps {
   map: mapboxgl.Map | null

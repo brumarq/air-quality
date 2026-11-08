@@ -1,4 +1,4 @@
-import { getCommuneBySlug } from "@/data/communes"
+import { getCommuneBySlug } from "@/domain/communes"
 import { CommuneMap } from "@/components/communes/commune-map"
 import { notFound } from "next/navigation"
 

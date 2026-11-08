@@ -2,8 +2,8 @@
 
 import Link from "next/link"
 import { ChevronDown, Map, MapPin } from "lucide-react"
-import type { CommuneConfig } from "@/data/communes"
-import { communes } from "@/data/communes"
+import type { CommuneConfig } from "@/domain/communes"
+import { communes } from "@/domain/communes"
 import { TIME_RANGES } from "@/domain/time-ranges"
 import { Badge } from "@/components/ui/badge"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"

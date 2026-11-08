@@ -1,7 +1,7 @@
 'use client'
 
 import dynamic from "next/dynamic"
-import { LUXEMBOURG_AREA } from "@/data/communes"
+import { LUXEMBOURG_AREA } from "@/domain/communes"
 
 // Dynamically import the MapLayout component with no SSR
 const MapLayout = dynamic(() => import("@/components/layout/map-layout").then((mod) => mod.MapLayout), {
