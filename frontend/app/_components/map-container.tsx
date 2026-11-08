@@ -10,9 +10,10 @@ import { CustomMapControls } from "@/map/custom-map-controls"
 import type { MapStatus } from "@/map/use-mapbox-instance"
 import { CommuneHeaderCard, type AreaMode } from "./commune-header-card"
 import { ReportCard } from "./report-card"
+import { HeatTubeCallout } from "./heat-tube-callout"
 import { AirQualityStation } from "@/domain/air-quality"
 import { NO2_LIMITS, POLLUTANT_LIMITS, type PollutantParameter } from "@/domain/limits"
-import { TIME_RANGES, type RangeKey } from "@/domain/time-ranges"
+import { TIME_RANGES, type RangeKey } from "@/domain/air-quality/time-ranges"
 import { fetchNo2TubeDataset } from "@/api/no2-tubes"
 import { useAsync } from "@/lib/use-async"
 import type { Area } from "@/domain/area"
@@ -204,7 +205,17 @@ export function MapContainer({
 
           {mode === "heat" && heatData && (
             <div className="self-stretch flex justify-end pointer-events-none">
-              <HeatStoryPanel data={heatData} communeName={area.name} tubeDataset={tubeDataset} onFlyTo={flyTo} />
+              <HeatStoryPanel
+                data={heatData}
+                communeName={area.name}
+                study={commune?.heatStudy ?? null}
+                onFlyTo={flyTo}
+                callout={
+                  commune?.heatTubeCallout && (
+                    <HeatTubeCallout callout={commune.heatTubeCallout} heat={heatData} tubes={tubeDataset} />
+                  )
+                }
+              />
             </div>
           )}
         </div>

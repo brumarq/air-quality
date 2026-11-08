@@ -4,6 +4,8 @@ import { render } from "@testing-library/react"
 import { HeatMapCard } from "@/features/heat/heat-map-card"
 import { HeatStoryPanel } from "@/features/heat/heat-story-panel"
 import { stubFetchWithFixtures } from "@/test/fixture-fetch"
+import { ESCH_SUR_ALZETTE } from "@/content/communes/esch-sur-alzette"
+import { HeatTubeCallout } from "@/app/_components/heat-tube-callout"
 import { loadEschHeat, loadEschTubes } from "@/test/esch"
 
 beforeAll(stubFetchWithFixtures)
@@ -15,7 +17,15 @@ describe("heat panels on the real Esch data (characterization)", () => {
   it("renders the story panel", async () => {
     const data = await loadEschHeat()
     const tubes = await loadEschTubes()
-    const text = render(<HeatStoryPanel data={data} communeName="Esch-sur-Alzette" tubeDataset={tubes} onFlyTo={() => {}} />).container.textContent
+    const text = render(
+      <HeatStoryPanel
+        data={data}
+        communeName="Esch-sur-Alzette"
+        study={ESCH_SUR_ALZETTE.heatStudy ?? null}
+        onFlyTo={() => {}}
+        callout={ESCH_SUR_ALZETTE.heatTubeCallout && <HeatTubeCallout callout={ESCH_SUR_ALZETTE.heatTubeCallout} heat={data} tubes={tubes} />}
+      />,
+    ).container.textContent
     expect(text).toMatchSnapshot()
   })
 

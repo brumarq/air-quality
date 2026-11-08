@@ -44,6 +44,7 @@ describe("buildHeatStory", () => {
         yearStats(2024, [{ osmId: "a", name: "Lycée A" }, { osmId: "u1", name: null }, { osmId: "u2", name: null }]),
         yearStats(2025, [{ osmId: "a", name: "Lycée A" }, { osmId: "b", name: "École B" }, { osmId: "c", name: "École C" }]),
       ]),
+      null,
     )
     expect(story.sensitiveBuildings).toEqual({
       everInHottest: 5,
@@ -60,7 +61,7 @@ describe("buildHeatStory", () => {
   it("keeps shown + remaining === everInHottest for any data", () => {
     fc.assert(
       fc.property(fc.array(fc.uniqueArray(building, { selector: (b) => b.osmId, maxLength: 6 }), { maxLength: 5 }), (perYear) => {
-        const { sensitiveBuildings: s } = buildHeatStory(dataOf(perYear.map((b, i) => yearStats(2021 + i, b))))
+        const { sensitiveBuildings: s } = buildHeatStory(dataOf(perYear.map((b, i) => yearStats(2021 + i, b))), null)
         expect(s.shown.length + s.remaining).toBe(s.everInHottest)
         expect(s.shown.length).toBeLessThanOrEqual(2)
       }),
@@ -68,8 +69,34 @@ describe("buildHeatStory", () => {
   })
 
   it("has no years and no hottest spot without data", () => {
-    const story = buildHeatStory(dataOf([], 0))
+    const story = buildHeatStory(dataOf([], 0), null)
     expect(story.years).toBeNull()
     expect(story.hottestSpot).toBeNull()
+  })
+})
+
+describe("buildHeatStory's study status", () => {
+  const content = {
+    agreesTitle: "",
+    introBefore: "",
+    reportTitle: "",
+    introAfter: "",
+    reportUrl: "",
+    reportLinkLabel: "",
+    disagreesText: "",
+    notComparedText: "",
+    methodNote: "",
+  }
+  const comparison = (cleanSeparation: boolean) => ({ method: "", points: [], coldestHotPointC: 0, warmestCoolPointC: 0, cleanSeparation })
+  const withComparison = (c: ReturnType<typeof comparison> | null) => ({ ...dataOf([]), studyComparison: c })
+
+  it("is null for a commune without a study, even if a comparison file exists", () => {
+    expect(buildHeatStory(withComparison(comparison(true)), null).study).toBeNull()
+  })
+
+  it("agrees, disagrees, or isn't compared yet", () => {
+    expect(buildHeatStory(withComparison(comparison(true)), content).study?.status).toBe("agrees")
+    expect(buildHeatStory(withComparison(comparison(false)), content).study?.status).toBe("disagrees")
+    expect(buildHeatStory(withComparison(null), content).study?.status).toBe("not-compared")
   })
 })

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 import fc from "fast-check"
-import { bucketTrend } from "@/domain/chart-bucketing"
+import { bucketTrend } from "@/domain/air-quality/chart-bucketing"
 import type { AirQualityStation } from "@/domain/air-quality"
 
 const station: AirQualityStation = { id: 1, name: "S", lat: 0, lng: 0 }

@@ -95,6 +95,28 @@ export function latestHeatYear(data: HeatMapData): number | null {
   return data.years.at(-1) ?? null
 }
 
+/** A commune's own published heat study, which the satellite data is checked against. */
+export interface HeatStudyContent {
+  /** Panel title when the satellite data agrees with every spot the study named. */
+  agreesTitle: string
+  /** The intro around the study's title. "{summers}" becomes the number of summers. */
+  introBefore: string
+  reportTitle: string
+  introAfter: string
+  reportUrl: string
+  reportLinkLabel: string
+  /** Shown when a named place didn't rank as the study suggests. "{years}" becomes e.g. "2022–2025". */
+  disagreesText: string
+  /** Shown when the satellite comparison hasn't been prepared yet. */
+  notComparedText: string
+  /** How the study's own data was made, appended to the satellite method note. */
+  methodNote: string
+}
+
+export type HeatStudyStatus =
+  | { status: "agrees" | "disagrees"; content: HeatStudyContent; comparison: StudyComparison }
+  | { status: "not-compared"; content: HeatStudyContent }
+
 export interface HeatStoryViewModel {
   /** The summers covered; null when there are none. */
   years: { first: number; last: number; count: number } | null
@@ -109,13 +131,20 @@ export interface HeatStoryViewModel {
     /** everInHottest minus shown, so "N shown, +M more" always adds up to the total. */
     remaining: number
   }
-  study: StudyComparison | null
+  /** How the commune's own study compares; null when the commune has no study. */
+  study: HeatStudyStatus | null
 }
 
 const SHOWN_BUILDINGS = 2
 
-/** Everything the heat story panel shows, computed from the commune's heat data. */
-export function buildHeatStory(data: HeatMapData): HeatStoryViewModel {
+function studyStatus(comparison: StudyComparison | null, content: HeatStudyContent | null): HeatStudyStatus | null {
+  if (!content) return null
+  if (!comparison) return { status: "not-compared", content }
+  return { status: comparison.cleanSeparation ? "agrees" : "disagrees", content, comparison }
+}
+
+/** Everything the heat story panel shows, from the commune's heat data and its study, if any. */
+export function buildHeatStory(data: HeatMapData, study: HeatStudyContent | null): HeatStoryViewModel {
   const first = data.years.at(0)
   const last = data.years.at(-1)
   const latestStats = last === undefined ? null : statsForYear(data, last)
@@ -143,7 +172,7 @@ export function buildHeatStory(data: HeatMapData): HeatStoryViewModel {
       shown,
       remaining: summersInHottest.size - shown.length,
     },
-    study: data.studyComparison,
+    study: studyStatus(data.studyComparison, study),
   }
 }
 

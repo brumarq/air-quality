@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { POLLUTANT_LIMITS, POLLUTANT_PARAMETERS, type PollutantLimit, type PollutantParameter } from "@/domain/limits"
-import type { TimeRangeOption } from "@/domain/time-ranges"
+import type { TimeRangeOption } from "@/domain/air-quality/time-ranges"
 import type { AsyncState } from "@/lib/use-async"
 import type { SensorHistory } from "./use-sensor-history"
 import { PollutantSummaryTile } from "./pollutant-summary-tile"

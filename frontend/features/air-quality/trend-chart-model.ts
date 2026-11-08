@@ -1,7 +1,7 @@
 import type { StationHistory } from "@/domain/air-quality"
-import { bucketTrend } from "@/domain/chart-bucketing"
-import { bucketStart, LUXEMBOURG_TIME_ZONE, type Granularity, type TimeWindow } from "@/domain/time"
-import type { TimeRangeOption } from "@/domain/time-ranges"
+import { bucketTrend } from "@/domain/air-quality/chart-bucketing"
+import { bucketStart, LUXEMBOURG_TIME_ZONE, type Granularity, type TimeWindow } from "@/domain/shared/time"
+import type { TimeRangeOption } from "@/domain/air-quality/time-ranges"
 import { stationColor } from "./station-colors"
 
 /** One Recharts row: a bucket start (epoch ms) and each station's value, keyed by dataKey. */

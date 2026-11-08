@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 import fc from "fast-check"
-import { bucketAxis, bucketStart, nextBucket, windowEndingAt, type Granularity } from "@/domain/time"
+import { bucketAxis, bucketStart, nextBucket, windowEndingAt, type Granularity } from "@/domain/shared/time"
 
 const HOUR = 60 * 60 * 1000
 const iso = (d: Date) => d.toISOString()

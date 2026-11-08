@@ -1,71 +1,66 @@
 "use client"
 
+import type { ReactNode } from "react"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { buildHeatStory, type HeatMapData } from "@/domain/heat"
+import { buildHeatStory, type HeatMapData, type HeatStoryViewModel, type HeatStudyContent } from "@/domain/heat"
 import type { LngLat } from "@/domain/shared/geo"
-import { NO2_LIMITS } from "@/domain/limits"
-import { getReductionNeeded, type No2TubeDataset } from "@/domain/no2-tubes"
 import { HeatHotspotList } from "./heat-hotspot-list"
 
 interface HeatStoryPanelProps {
   data: HeatMapData
   communeName: string
-  tubeDataset?: No2TubeDataset | null
+  /** The commune's own heat study, if it has one. */
+  study: HeatStudyContent | null
   onFlyTo: (lngLat: LngLat) => void
+  /** Optional extra note shown above the method notes (e.g. a cross-dataset callout). */
+  callout?: ReactNode
 }
 
-export function HeatStoryPanel({ data, communeName, tubeDataset, onFlyTo }: HeatStoryPanelProps) {
-  const story = buildHeatStory(data)
-  const { study, years, hottestSpot, sensitiveBuildings } = story
+function StudyIntro({ study, summers, yearRange }: { study: HeatStoryViewModel["study"]; summers: number; yearRange: string }) {
+  if (!study) return null
+  const { content } = study
+  switch (study.status) {
+    case "agrees":
+      return (
+        <p className="text-xs text-muted-foreground">
+          {content.introBefore}
+          <em>{content.reportTitle}</em>
+          {content.introAfter.replace("{summers}", String(summers))}{" "}
+          <a href={content.reportUrl} target="_blank" rel="noreferrer" className="underline hover:text-foreground">
+            {content.reportLinkLabel}
+          </a>
+        </p>
+      )
+    case "disagrees":
+      return <p className="text-xs text-muted-foreground">{content.disagreesText.replace("{years}", yearRange)}</p>
+    case "not-compared":
+      return <p className="text-xs text-muted-foreground">{content.notComparedText}</p>
+  }
+}
+
+export function HeatStoryPanel({ data, communeName, study: studyContent, onFlyTo, callout }: HeatStoryPanelProps) {
+  const { study, years, hottestSpot, sensitiveBuildings } = buildHeatStory(data, studyContent)
   const yearRange = years ? `${years.first}–${years.last}` : ""
   const spot = hottestSpot?.spot ?? null
-
-  const kennedyStudyPoint = study?.points.find((p) => p.name.toLowerCase().includes("kennedy"))
-  const kennedyReduction = tubeDataset
-    ? getReductionNeeded(tubeDataset, NO2_LIMITS).find((r) => r.tubeId === "kennedy")
-    : undefined
-
-  function flyToHottestSpot() {
-    if (spot?.lngLat) onFlyTo(spot.lngLat)
-  }
+  const comparison = study && study.status !== "not-compared" ? study.comparison : null
 
   return (
     <Card className="pointer-events-auto w-[28rem] shadow-lg">
       <CardHeader className="pb-2 space-y-1">
         <h3 className="font-semibold text-sm">
-          {study?.cleanSeparation
-            ? "Satellite data backs the PRO-SUD heat study"
+          {study?.status === "agrees"
+            ? study.content.agreesTitle
             : `Summer surface temperature in ${communeName}, observed by satellite since ${years?.first ?? ""}`}
         </h3>
-        <p className="text-xs text-muted-foreground">
-          {study?.cleanSeparation ? (
-            <>
-              In 2024, the PRO-SUD communes, LIST and GEO-NET mapped summer heat across Esch and 10 neighbouring
-              communes (<em>Bioklima-Analyse für die PRO-SUD Region</em>). The study named specific hot and cool
-              spots in Esch. Below is what satellites measured at those spots over {years?.count ?? 0} summers.{" "}
-              <a
-                href="https://minett-biosphere.com/wp-content/uploads/2024/10/Bioklima-Analyse-Region-PRO-SUD.pdf"
-                target="_blank"
-                rel="noreferrer"
-                className="underline hover:text-foreground"
-              >
-                Read the study (PDF) ↗
-              </a>
-            </>
-          ) : study ? (
-            `Checked against ${yearRange} satellite data — at least one named place didn't rank where the PRO-SUD study's naming would suggest.`
-          ) : (
-            "No comparison against the PRO-SUD study prepared for this commune yet."
-          )}
-        </p>
+        <StudyIntro study={study} summers={years?.count ?? 0} yearRange={yearRange} />
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
-        {study && (
+        {comparison && (
           <HeatHotspotList
-            points={study.points}
-            coldestHotPointC={study.coldestHotPointC}
-            warmestCoolPointC={study.warmestCoolPointC}
-            cleanSeparation={study.cleanSeparation}
+            points={comparison.points}
+            coldestHotPointC={comparison.coldestHotPointC}
+            warmestCoolPointC={comparison.warmestCoolPointC}
+            cleanSeparation={comparison.cleanSeparation}
             yearRange={yearRange}
             onFlyTo={onFlyTo}
           />
@@ -74,7 +69,7 @@ export function HeatStoryPanel({ data, communeName, tubeDataset, onFlyTo }: Heat
         <div className="grid grid-cols-2 gap-2 text-xs">
           <button
             type="button"
-            onClick={flyToHottestSpot}
+            onClick={() => spot?.lngLat && onFlyTo(spot.lngLat)}
             disabled={!spot?.lngLat}
             className="rounded-md bg-muted px-2.5 py-2 text-left hover:bg-muted/70 disabled:hover:bg-muted"
           >
@@ -103,23 +98,13 @@ export function HeatStoryPanel({ data, communeName, tubeDataset, onFlyTo }: Heat
           </div>
         </div>
 
-        {kennedyStudyPoint && kennedyReduction?.status === "ok" && (
-          <p className="text-xs text-ink-strong pt-3 border-t">
-            <span className="font-medium">Boulevard Kennedy:</span> a heat hotspot in the PRO-SUD study, and NO₂
-            still{" "}
-            <span className="font-semibold">
-              {kennedyReduction.pctVsTarget > 0 ? "+" : ""}
-              {kennedyReduction.pctVsTarget.toFixed(0)}%
-            </span>{" "}
-            above the 2030 value.
-          </p>
-        )}
+        {callout}
 
         <div className="text-xs text-muted-foreground pt-2 border-t flex flex-col gap-1">
           <p>Industrial land excluded above: active-plant process heat isn&apos;t something commune planning can change.</p>
           <p>
-            Satellite: surface temperature, ~11:00, 100m, June–August median. PRO-SUD study: modelled air
-            temperature and felt heat on one simulated day. Never blended.
+            Satellite: surface temperature, ~11:00, 100m, June–August median.
+            {studyContent && ` ${studyContent.methodNote}`}
           </p>
         </div>
       </CardContent>

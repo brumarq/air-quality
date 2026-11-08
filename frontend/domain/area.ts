@@ -1,4 +1,4 @@
-import type { StudyOverlay } from "@/domain/heat"
+import type { HeatStudyContent, StudyOverlay } from "@/domain/heat"
 import type { LngLat } from "@/domain/shared/geo"
 
 interface AreaBase {
@@ -25,6 +25,11 @@ export interface CommuneArea extends AreaBase {
   datasets: { no2Tubes: boolean; heat: boolean }
   /** The commune's own heat study as a map overlay, if it has a public one. */
   studyOverlay?: StudyOverlay
+  /** The commune's own heat study, if it has one, for the heat story panel. */
+  heatStudy?: HeatStudyContent
+  /** A place that's both a heat hotspot in the study and an NO2 tube site, called out in
+   *  heat mode. Linked by the study point's exact name and the tube's id. */
+  heatTubeCallout?: { label: string; studyPointName: string; tubeId: string; heatText: string }
 }
 
 export type Area = CountryArea | CommuneArea

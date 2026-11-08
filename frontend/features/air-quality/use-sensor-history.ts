@@ -3,7 +3,7 @@
 import { AirQualityApi } from "@/api/air-quality"
 import type { AirQualityStation, StationHistory } from "@/domain/air-quality"
 import type { PollutantLimit } from "@/domain/limits"
-import { windowEndingAt, type TimeWindow } from "@/domain/time"
+import { windowEndingAt, type TimeWindow } from "@/domain/shared/time"
 import { useAsync, type AsyncState } from "@/lib/use-async"
 
 export interface SensorHistory {

@@ -1,3 +1,4 @@
+import { readdirSync } from "fs"
 import { dirname, join } from "path"
 import { fileURLToPath } from "url"
 import { FlatCompat } from "@eslint/eslintrc"
@@ -55,6 +56,10 @@ const DOMAIN_PURITY = [
   },
 ]
 
+const FEATURES = readdirSync(join(ROOT, "features"), { withFileTypes: true })
+  .filter((entry) => entry.isDirectory())
+  .map((entry) => entry.name)
+
 const eslintConfig = [
   { ignores: ["lint-fixtures/**", ".next/**", ".next-e2e/**", "test-results/**", "playwright-report/**", "node_modules/**", "public/**", "next-env.d.ts"] },
   ...compat.extends("next/core-web-vitals", "next/typescript"),
@@ -98,10 +103,17 @@ const eslintConfig = [
     },
   },
   restrict(["app/**"], []),
-  restrict(["features/**"], [
-    ban(["@/features/*", "@/app/*", "@/app/**"], "Features must not import other features or app/. Inside a feature, use relative imports."),
-    NO_CONTENT,
-  ]),
+  // One block per feature folder: the shared feature rules, plus "only your own domain".
+  ...FEATURES.map((feature) =>
+    restrict([`features/${feature}/**`], [
+      ban(["@/features/*", "@/app/*", "@/app/**"], "Features must not import other features or app/. Inside a feature, use relative imports."),
+      NO_CONTENT,
+      {
+        regex: `^@/domain/(?!(${feature}|shared|limits)(/|$))`,
+        message: `features/${feature} may import domain/${feature}, domain/shared and domain/limits only.`,
+      },
+    ]),
+  ),
   restrict(["map/**"], [
     ban(["@/features/*", "@/app/**", "@/api/*"], "map/ is generic Mapbox code: it may use domain/ but not features, app or api."),
     NO_CONTENT,

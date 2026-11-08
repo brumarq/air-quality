@@ -1,4 +1,4 @@
-import { LUXEMBOURG_TIME_ZONE } from "@/domain/time"
+import { LUXEMBOURG_TIME_ZONE } from "@/domain/shared/time"
 
 // Readings are shown in Luxembourg time, whatever the viewer's own zone. The date and
 // number format stays the viewer's locale.

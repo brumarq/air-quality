@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, it } from "vitest"
-import { bucketTrend } from "@/domain/chart-bucketing"
+import { bucketTrend } from "@/domain/air-quality/chart-bucketing"
 import { stubFetchWithFixtures } from "@/test/fixture-fetch"
 import { eschNo2History } from "@/test/esch"
 

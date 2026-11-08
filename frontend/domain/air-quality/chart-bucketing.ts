@@ -1,5 +1,5 @@
 import type { StationHistory } from "@/domain/air-quality"
-import { bucketAxis, bucketStart, type Granularity, type TimeWindow } from "@/domain/time"
+import { bucketAxis, bucketStart, type Granularity, type TimeWindow } from "@/domain/shared/time"
 
 /** One station's averages, aligned with `axis`: null where the station had no reading. */
 export interface TrendSeries {

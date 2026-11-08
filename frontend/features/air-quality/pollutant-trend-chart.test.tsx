@@ -2,7 +2,7 @@
 import { describe, expect, it, vi } from "vitest"
 import { render, screen } from "@testing-library/react"
 import { POLLUTANT_LIMITS } from "@/domain/limits"
-import { TIME_RANGES } from "@/domain/time-ranges"
+import { TIME_RANGES } from "@/domain/air-quality/time-ranges"
 import { PollutantTrendChart } from "./pollutant-trend-chart"
 import * as model from "./trend-chart-model"
 

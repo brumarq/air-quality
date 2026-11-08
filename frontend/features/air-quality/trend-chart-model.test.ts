@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 import type { StationHistory } from "@/domain/air-quality"
-import { TIME_RANGES } from "@/domain/time-ranges"
+import { TIME_RANGES } from "@/domain/air-quality/time-ranges"
 import { buildTrendChartModel } from "./trend-chart-model"
 
 const utc = (iso: string) => new Date(Date.parse(iso))

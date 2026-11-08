@@ -19,4 +19,24 @@ export const ESCH_SUR_ALZETTE: CommuneArea = {
     wmsUrl: "https://wms.geoportail.lu/public_map_layers/service",
     wmsLayer: "2922",
   },
+  heatStudy: {
+    agreesTitle: "Satellite data backs the PRO-SUD heat study",
+    introBefore:
+      "In 2024, the PRO-SUD communes, LIST and GEO-NET mapped summer heat across Esch and 10 neighbouring communes (",
+    reportTitle: "Bioklima-Analyse für die PRO-SUD Region",
+    introAfter:
+      "). The study named specific hot and cool spots in Esch. Below is what satellites measured at those spots over {summers} summers.",
+    reportUrl: "https://minett-biosphere.com/wp-content/uploads/2024/10/Bioklima-Analyse-Region-PRO-SUD.pdf",
+    reportLinkLabel: "Read the study (PDF) ↗",
+    disagreesText:
+      "Checked against {years} satellite data — at least one named place didn't rank where the PRO-SUD study's naming would suggest.",
+    notComparedText: "No comparison against the PRO-SUD study prepared for this commune yet.",
+    methodNote: "PRO-SUD study: modelled air temperature and felt heat on one simulated day. Never blended.",
+  },
+  heatTubeCallout: {
+    label: "Boulevard Kennedy",
+    studyPointName: "Boulevard Kennedy",
+    tubeId: "kennedy",
+    heatText: "a heat hotspot in the PRO-SUD study",
+  },
 }

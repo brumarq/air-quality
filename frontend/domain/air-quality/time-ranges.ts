@@ -1,4 +1,4 @@
-import type { Granularity } from "@/domain/time"
+import type { Granularity } from "@/domain/shared/time"
 
 /** The periods the header offers, in display order. Adding one here makes the compiler
  *  flag every place that must handle it. */
