@@ -3,7 +3,8 @@
 import { useEffect, useRef } from "react"
 import mapboxgl from "mapbox-gl"
 import type { AirQualityStation } from "@/domain/air-quality"
-import { addLuxembourgBoundary, addAirQualityLayers } from "@/lib/utils/map-utils"
+import { addLuxembourgBoundary } from "@/map/luxembourg-boundary"
+import { addAirQualityLayers } from "@/lib/utils/map-utils"
 
 interface UseMapLayersProps {
   map: mapboxgl.Map | null

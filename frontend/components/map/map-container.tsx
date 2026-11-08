@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react"
 import "mapbox-gl/dist/mapbox-gl.css"
-import { useMapResize } from "@/hooks/use-map-resize"
-import { CustomMapControls } from "./custom-map-controls"
+import { useMapResize } from "@/map/use-map-resize"
+import { CustomMapControls } from "@/map/custom-map-controls"
 import { CommuneHeaderCard, type AreaMode } from "@/components/communes/commune-header-card"
 import { CommuneReadingsPanel } from "@/components/communes/commune-readings-panel"
 import { PollutantTrendChart } from "@/components/communes/pollutant-trend-chart"
