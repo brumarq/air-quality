@@ -88,7 +88,7 @@ export function removeHeatBoundaryLayer(map: mapboxgl.Map) {
 const BUILDING_KIND_COLOR: Record<string, string> = {
   school: "#7C3AED",
   kindergarten: "#DB2777",
-  nursing_home: "#0D9488",
+  care_facility: "#0D9488",
 }
 
 export function addHeatBuildingsLayer(map: mapboxgl.Map, data: HeatMapData) {
@@ -107,7 +107,7 @@ export function addHeatBuildingsLayer(map: mapboxgl.Map, data: HeatMapData) {
           ["get", "kind"],
           "school", BUILDING_KIND_COLOR.school,
           "kindergarten", BUILDING_KIND_COLOR.kindergarten,
-          "nursing_home", BUILDING_KIND_COLOR.nursing_home,
+          "care_facility", BUILDING_KIND_COLOR.care_facility,
           "#6B7280",
         ],
         "circle-stroke-width": 1.5,

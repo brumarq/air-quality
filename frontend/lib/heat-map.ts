@@ -7,6 +7,7 @@ import type mapboxgl from "mapbox-gl"
 
 export interface HeatGridCellProperties {
   id: string
+  is_industrial: boolean
   [key: `temp_c_${number}`]: number | null
   [key: `anomaly_c_${number}`]: number | null
   [key: `ndvi_${number}`]: number | null
@@ -18,6 +19,17 @@ export interface HeatStatsYear {
   hottest_10pct_cell_count: number
   hottest_cell_ids: string[]
   sensitive_buildings_in_hottest_10pct: { name: string; kind: string; osm_id: string }[]
+  // "hottest 10%" excludes private industrial land (e.g. the active ArcelorMittal Belval
+  // plant) - that land reads hottest of all, but it's not something a commune officer
+  // has any lever over, and including it was crowding real school hotspots out of this
+  // set entirely. industrial_max_anomaly_c is that excluded land's own worst reading,
+  // shown as its own stat rather than hidden.
+  industrial_max_anomaly_c: number | null
+  industrial_cell_count: number
+  hottest_non_industrial_anomaly_c: number | null
+  hottest_non_industrial_place: string | null
+  hottest_non_industrial_lat: number | null
+  hottest_non_industrial_lon: number | null
 }
 
 export interface HeatStats {
@@ -30,8 +42,25 @@ export interface HeatStats {
 export interface SensitiveBuildingProperties {
   osm_id: string
   name: string
-  kind: "school" | "kindergarten" | "nursing_home"
+  kind: "school" | "kindergarten" | "care_facility"
   nearest_cell_id: string
+}
+
+export interface StudyComparisonPoint {
+  name: string
+  studySays: "hot" | "cool"
+  tempC: number
+  approximate: boolean
+  lat: number
+  lon: number
+}
+
+export interface StudyComparison {
+  method: string
+  points: StudyComparisonPoint[]
+  coldestHotPointC: number
+  warmestCoolPointC: number
+  cleanSeparation: boolean
 }
 
 export interface HeatMapData {
@@ -39,6 +68,7 @@ export interface HeatMapData {
   boundary: GeoJSON.Feature<GeoJSON.Polygon | GeoJSON.MultiPolygon>
   buildings: GeoJSON.FeatureCollection<GeoJSON.Point, SensitiveBuildingProperties>
   stats: HeatStats
+  studyComparison: StudyComparison | null
 }
 
 const cache = new Map<string, Promise<HeatMapData | null>>()
@@ -54,14 +84,21 @@ export function fetchHeatMapData(communeSlug: string): Promise<HeatMapData | nul
 
   const promise = (async (): Promise<HeatMapData | null> => {
     const base = `/data/${communeSlug}`
+    // no-store: this data only changes via a pipeline rerun, but a stale cached copy
+    // after one (e.g. post-rerun, pre-reload) is exactly the kind of mismatch a
+    // reviewer catches and loses trust in the whole page over - not worth the risk.
     try {
       const [grid, boundary, buildings, stats] = await Promise.all([
-        fetch(`${base}/heat-grid.geojson`).then((r) => (r.ok ? r.json() : Promise.reject(r.status))),
-        fetch(`${base}/boundary.geojson`).then((r) => (r.ok ? r.json() : Promise.reject(r.status))),
-        fetch(`${base}/sensitive-buildings.geojson`).then((r) => (r.ok ? r.json() : Promise.reject(r.status))),
-        fetch(`${base}/stats.json`).then((r) => (r.ok ? r.json() : Promise.reject(r.status))),
+        fetch(`${base}/heat-grid.geojson`, { cache: "no-store" }).then((r) => (r.ok ? r.json() : Promise.reject(r.status))),
+        fetch(`${base}/boundary.geojson`, { cache: "no-store" }).then((r) => (r.ok ? r.json() : Promise.reject(r.status))),
+        fetch(`${base}/sensitive-buildings.geojson`, { cache: "no-store" }).then((r) => (r.ok ? r.json() : Promise.reject(r.status))),
+        fetch(`${base}/stats.json`, { cache: "no-store" }).then((r) => (r.ok ? r.json() : Promise.reject(r.status))),
       ])
-      return { grid, boundary, buildings, stats }
+      // Optional - only the Week 0 check script writes this one, not every commune will have it.
+      const studyComparison = await fetch(`${base}/study-comparison.json`, { cache: "no-store" })
+        .then((r) => (r.ok ? r.json() : null))
+        .catch(() => null)
+      return { grid, boundary, buildings, stats, studyComparison }
     } catch {
       return null
     }
@@ -100,5 +137,5 @@ export const HEAT_LEGEND_STOPS = DIVERGING_RAMP
 export const BUILDING_KIND_LABEL: Record<SensitiveBuildingProperties["kind"], string> = {
   school: "School",
   kindergarten: "Kindergarten / crèche",
-  nursing_home: "Care home",
+  care_facility: "Care facility",
 }

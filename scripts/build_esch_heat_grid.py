@@ -17,8 +17,8 @@ from pathlib import Path
 import ee
 import requests
 from pyproj import Transformer
-from shapely.geometry import box, shape, mapping
-from shapely.ops import transform as shapely_transform
+from shapely.geometry import box, shape, mapping, Polygon
+from shapely.ops import transform as shapely_transform, unary_union
 
 ee.Initialize(project="air-quality-451910")
 
@@ -79,30 +79,120 @@ def build_grid(boundary_4326):
     return cells
 
 
-def fetch_sensitive_buildings(boundary_4326):
-    """Schools, kindergartens, and care homes from OSM via Overpass - point locations,
-    not building footprints (see the resolution conversation this script came from)."""
+def reverse_geocode(lat, lon):
+    """Nearest street/place name via Nominatim - used once per year to give the
+    "hottest spot" stat a real location, not just a bare number."""
+    try:
+        resp = requests.get(
+            "https://nominatim.openstreetmap.org/reverse",
+            params={"lat": lat, "lon": lon, "format": "json", "zoom": 17},
+            headers={"User-Agent": "esch-heat-profile-research/1.0 (one-off data pipeline)"},
+            timeout=15,
+        )
+        resp.raise_for_status()
+        address = resp.json().get("address", {})
+        return address.get("road") or address.get("suburb") or address.get("neighbourhood")
+    except requests.exceptions.RequestException:
+        return None
+
+
+def overpass_query(query, timeout=90, attempts=4):
+    """POSTs an Overpass query with retry/backoff - the public instance returns
+    transient 502/504s under load, confirmed in practice building this pipeline."""
+    last_error = None
+    for attempt in range(attempts):
+        if attempt > 0:
+            wait = attempt * 5
+            print(f"  Overpass retry {attempt}/{attempts - 1} after {wait}s: {last_error}")
+            time.sleep(wait)
+        try:
+            resp = requests.post(
+                "https://overpass-api.de/api/interpreter",
+                data={"data": query},
+                headers={"User-Agent": "esch-heat-profile-research/1.0 (one-off data pipeline)"},
+                timeout=timeout,
+            )
+            resp.raise_for_status()
+            return resp.json()["elements"]
+        except requests.exceptions.RequestException as e:
+            last_error = e
+    raise RuntimeError(f"Overpass failed after {attempts} attempts: {last_error}")
+
+
+def fetch_industrial_landuse(boundary_4326):
+    """Industrial land (landuse=industrial) within Esch, as one merged polygon - used to
+    exclude cells like the active ArcelorMittal Belval plant from the "hottest 10%"
+    headline figure. That land reads extremely hot (process heat, bare ground - see
+    ESCH-HEAT-PROFILE-PLAN.md), but it's private industrial land a commune officer has
+    no lever over, and a reviewer caught 2026-11-xx that it was crowding real,
+    actionable school hotspots out of the hottest-10% set entirely. Confirmed by
+    checking: with industrial cells included, only Lycée Guillaume Kroll and one
+    unnamed facility ever appeared in the hottest 10%; excluding them surfaced École
+    Jean Jaurès and École Brill too, in the years industrial cells had been dominating."""
     minx, miny, maxx, maxy = boundary_4326.bounds
+    bbox = f"{miny},{minx},{maxy},{maxx}"
     query = f"""
-    [out:json][timeout:30];
+    [out:json][timeout:50];
     (
-      node["amenity"="school"]({miny},{minx},{maxy},{maxx});
-      way["amenity"="school"]({miny},{minx},{maxy},{maxx});
-      node["amenity"="kindergarten"]({miny},{minx},{maxy},{maxx});
-      way["amenity"="kindergarten"]({miny},{minx},{maxy},{maxx});
-      node["social_facility"="nursing_home"]({miny},{minx},{maxy},{maxx});
-      way["social_facility"="nursing_home"]({miny},{minx},{maxy},{maxx});
+      way["landuse"="industrial"]({bbox});
+      relation["landuse"="industrial"]({bbox});
+    );
+    out geom;
+    """
+    elements = overpass_query(query, timeout=60)
+
+    polys = []
+    for el in elements:
+        if el["type"] == "way" and "geometry" in el:
+            coords = [(pt["lon"], pt["lat"]) for pt in el["geometry"]]
+            if len(coords) >= 3:
+                try:
+                    polys.append(Polygon(coords))
+                except Exception:
+                    continue
+    return unary_union(polys) if polys else None
+
+
+# Display-name corrections for confirmed OSM typos - checked against OSM's own raw
+# tag (not a guess): way/148555060's name tag is literally "Licee Guillaume Kroll",
+# missing the accent and misspelled, confirmed 2026-11-09 via a direct Overpass lookup.
+OSM_NAME_FIXES = {
+    "Licee Guillaume Kroll": "Lycée Guillaume Kroll",
+}
+
+
+def fetch_sensitive_buildings(boundary_4326):
+    """Schools, kindergartens, and care facilities from OSM via Overpass - point
+    locations, not building footprints (see the resolution conversation this script
+    came from). Care facilities use several different tag combinations in practice -
+    narrowing to just social_facility=nursing_home found zero in Esch despite it having
+    real ones (Résidence Op der Léier, an assisted-living home, tags as
+    social_facility=assisted_living, not nursing_home) - a tagging-convention gap in
+    OSM, not an absence of care facilities, confirmed 2026-11-08 by widening the query."""
+    minx, miny, maxx, maxy = boundary_4326.bounds
+    bbox = f"{miny},{minx},{maxy},{maxx}"
+    # social_facility's care-related subtypes combined into one regex clause rather than
+    # one per subtype - cuts the query from 14 clauses to 6, since the unnarrowed version
+    # was timing out against the public Overpass instance.
+    query = f"""
+    [out:json][timeout:50];
+    (
+      node["amenity"="school"]({bbox});
+      way["amenity"="school"]({bbox});
+      node["amenity"="kindergarten"]({bbox});
+      way["amenity"="kindergarten"]({bbox});
+      node["social_facility"~"nursing_home|assisted_living|group_home"]({bbox});
+      way["social_facility"~"nursing_home|assisted_living|group_home"]({bbox});
+      node["amenity"="nursing_home"]({bbox});
+      way["amenity"="nursing_home"]({bbox});
+      node["amenity"="social_facility"]({bbox});
+      way["amenity"="social_facility"]({bbox});
+      node["healthcare"="nursing_home"]({bbox});
+      way["healthcare"="nursing_home"]({bbox});
     );
     out center;
     """
-    resp = requests.post(
-        "https://overpass-api.de/api/interpreter",
-        data={"data": query},
-        headers={"User-Agent": "esch-heat-profile-research/1.0 (one-off data pipeline)"},
-        timeout=60,
-    )
-    resp.raise_for_status()
-    elements = resp.json()["elements"]
+    elements = overpass_query(query)
 
     buildings = []
     for el in elements:
@@ -111,14 +201,19 @@ def fetch_sensitive_buildings(boundary_4326):
         if not boundary_4326.contains(pt):
             continue
         tags = el.get("tags", {})
-        kind = (
-            "school" if tags.get("amenity") == "school"
-            else "kindergarten" if tags.get("amenity") == "kindergarten"
-            else "nursing_home"
-        )
+        if tags.get("amenity") == "school":
+            kind = "school"
+        elif tags.get("amenity") == "kindergarten":
+            kind = "kindergarten"
+        else:
+            # Any care-facility match above, regardless of exact tag combination -
+            # the page cares about "vulnerable people living here," not OSM's internal
+            # distinction between nursing/assisted-living/group-home subtypes.
+            kind = "care_facility"
+        name = tags.get("name", "(unnamed)")
         buildings.append({
             "osm_id": f"{el['type']}/{el['id']}",
-            "name": tags.get("name", "(unnamed)"),
+            "name": OSM_NAME_FIXES.get(name, name),
             "kind": kind,
             "lat": lat,
             "lon": lon,
@@ -180,6 +275,13 @@ def main():
     buildings = fetch_sensitive_buildings(boundary_4326)
     print(f"  {len(buildings)} buildings")
 
+    print("Fetching industrial landuse from OSM (to exclude private industrial land from the 'hottest 10%' headline figure)...")
+    industrial_union = fetch_industrial_landuse(boundary_4326)
+    for c in cells:
+        c["is_industrial"] = bool(industrial_union and industrial_union.contains(c["centroid_4326"]))
+    n_industrial = sum(c["is_industrial"] for c in cells)
+    print(f"  {n_industrial} of {len(cells)} cells are on industrial land ({100 * n_industrial / len(cells):.1f}%)")
+
     # One ee.FeatureCollection of cell centroids, reused for every year's reduceRegions
     # call - sampling at the centroid rather than averaging over the cell polygon, since
     # at 100m-cell-vs-100m-pixel scale the two are nearly identical and centroid sampling
@@ -219,26 +321,56 @@ def main():
                 "ndvi": round(ndvi, 3) if ndvi is not None else None,
             }
 
+        # "Hottest 10%" is computed over non-industrial cells only - a reviewer caught
+        # that including private industrial land (the active ArcelorMittal Belval plant
+        # reads ~16C above the commune mean, dominated by process heat and bare ground,
+        # not urban form a commune can act on) was crowding real school hotspots out of
+        # this set entirely. See fetch_industrial_landuse's docstring for the before/after.
+        non_industrial_by_id = {c["id"]: c["is_industrial"] for c in cells}
         valid_anomalies = [
-            v[year]["anomaly_c"] for v in per_cell_year_data.values()
-            if v.get(year) and v[year]["anomaly_c"] is not None
+            (cid, v[year]["anomaly_c"]) for cid, v in per_cell_year_data.items()
+            if v.get(year) and v[year]["anomaly_c"] is not None and not non_industrial_by_id[cid]
         ]
-        valid_anomalies.sort()
+        valid_anomalies.sort(key=lambda x: x[1])
         p90_index = int(len(valid_anomalies) * 0.9)
-        hottest_threshold = valid_anomalies[p90_index] if valid_anomalies else None
+        hottest_threshold = valid_anomalies[p90_index][1] if valid_anomalies else None
 
         hottest_cell_ids = {
             cid for cid, v in per_cell_year_data.items()
-            if v.get(year) and v[year]["anomaly_c"] is not None and v[year]["anomaly_c"] >= hottest_threshold
+            if v.get(year) and v[year]["anomaly_c"] is not None
+            and not non_industrial_by_id[cid] and v[year]["anomaly_c"] >= hottest_threshold
         }
+
+        industrial_anomalies = [
+            v[year]["anomaly_c"] for cid, v in per_cell_year_data.items()
+            if v.get(year) and v[year]["anomaly_c"] is not None and non_industrial_by_id[cid]
+        ]
+
+        # The single hottest non-industrial cell's place name, reverse-geocoded once here
+        # rather than live in the browser - a reviewer wanted "+X C" paired with a real
+        # "where", not a bare number nobody can place.
+        hottest_place = None
+        hottest_lat = hottest_lon = None
+        if valid_anomalies:
+            hottest_cell_id = valid_anomalies[-1][0]
+            hottest_cell = next(c for c in cells if c["id"] == hottest_cell_id)
+            centroid = hottest_cell["centroid_4326"]
+            hottest_lat, hottest_lon = centroid.y, centroid.x
+            hottest_place = reverse_geocode(hottest_lat, hottest_lon)
 
         yearly_stats[year] = {
             "commune_mean_c": round(commune_mean, 2),
             "hottest_10pct_threshold_anomaly_c": round(hottest_threshold, 2) if hottest_threshold else None,
             "hottest_10pct_cell_count": len(hottest_cell_ids),
             "hottest_cell_ids": sorted(hottest_cell_ids),
+            "hottest_non_industrial_anomaly_c": round(valid_anomalies[-1][1], 2) if valid_anomalies else None,
+            "hottest_non_industrial_place": hottest_place,
+            "hottest_non_industrial_lat": hottest_lat,
+            "hottest_non_industrial_lon": hottest_lon,
+            "industrial_max_anomaly_c": round(max(industrial_anomalies), 2) if industrial_anomalies else None,
+            "industrial_cell_count": n_industrial,
         }
-        print(f"  done. hottest-10% threshold: anomaly >= {hottest_threshold:+.2f}°C over {len(hottest_cell_ids)} cells")
+        print(f"  done. hottest-10% threshold (non-industrial): anomaly >= {hottest_threshold:+.2f}°C over {len(hottest_cell_ids)} cells")
         time.sleep(1)  # be polite to the EE backend between years
 
     # Which sensitive buildings fall in a hottest-10% cell, per year - nearest cell by
@@ -264,7 +396,7 @@ def main():
         "features": [
             {
                 "type": "Feature",
-                "properties": {"id": c["id"], **{
+                "properties": {"id": c["id"], "is_industrial": c["is_industrial"], **{
                     f"{key}_{year}": per_cell_year_data[c["id"]].get(year, {}).get(key)
                     for year in YEARS for key in ("temp_c", "anomaly_c", "ndvi")
                 }},

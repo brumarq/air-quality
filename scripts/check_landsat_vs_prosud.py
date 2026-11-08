@@ -11,23 +11,31 @@ z-score classification (not absolute degrees, which the study itself says "only 
 for that one simulated day").
 """
 
+import json
+from pathlib import Path
+
 import ee
 
 ee.Initialize(project="air-quality-451910")
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+OUT_PATH = REPO_ROOT / "frontend" / "public" / "data" / "esch-sur-alzette" / "study-comparison.json"
 
 # Named locations from the PRO-SUD study (ESCH-HEAT-PROFILE-PLAN.md Step 3, "Esch
 # hotspots named in the study" / "Cool spots named"). Coordinates geocoded via
 # Nominatim/OSM 2026-11-08; boulevard Kennedy reused from the already-verified
 # frontend/data/no2-tubes/esch.json.
+# 5th field: approximate (street-level geocode, not the actual feature's polygon - no
+# OSM park polygon named Clair-Chêne exists, confirmed 2026-11-09 via Overpass).
 POINTS = [
-    ("Rue Zénon Bernard (dense centre)", "hot", 49.4919, 5.9785),
-    ("Esch-Schifflange industrial site", "hot", 49.5032, 5.9935),
-    ("An der Schmelz car parks", "hot", 49.4958, 5.9670),
-    ("Town hall square", "hot", 49.4959, 5.9855),
-    ("Boulevard Kennedy", "hot", 49.494214, 5.984654),
-    ("Parc Laval", "cool", 49.4989, 5.9781),
-    ("Park Clair-Chêne (approx., street not park polygon)", "cool", 49.4987, 5.9713),
-    ("Brucherbierg-Lalléngerbierg edge", "cool", 49.4950, 6.0017),
+    ("Rue Zénon Bernard (dense centre)", "hot", 49.4919, 5.9785, False),
+    ("Esch-Schifflange industrial site", "hot", 49.5032, 5.9935, False),
+    ("An der Schmelz car parks", "hot", 49.4958, 5.9670, False),
+    ("Town hall square", "hot", 49.4959, 5.9855, False),
+    ("Boulevard Kennedy", "hot", 49.494214, 5.984654, False),
+    ("Parc Laval", "cool", 49.4989, 5.9781, False),
+    ("Park Clair-Chêne", "cool", 49.4987, 5.9713, True),
+    ("Brucherbierg-Lalléngerbierg edge", "cool", 49.4950, 6.0017, False),
 ]
 
 # Box around Esch commune, wide enough to cover all points plus margin for the
@@ -76,13 +84,13 @@ area_sd = stats["ST_C_stdDev"]
 print(f"Area mean: {area_mean:.2f}°C, stddev: {area_sd:.2f}°C (box-wide, informational only)\n")
 
 results = []
-for name, label, lat, lon in POINTS:
+for name, label, lat, lon, approximate in POINTS:
     pt = ee.Geometry.Point([lon, lat])
     val = composite.reduceRegion(
         reducer=ee.Reducer.first(), geometry=pt, scale=100
     ).getInfo().get("ST_C")
     if val is not None:
-        results.append((name, label, val))
+        results.append((name, label, val, approximate, lat, lon))
     else:
         print(f"{name}: no data")
 
@@ -94,14 +102,29 @@ for name, label, lat, lon in POINTS:
 results.sort(key=lambda r: -r[2])
 print(f"{'°C':>6}  {'Study says':<6}  Location")
 print("-" * 70)
-for name, label, val in results:
-    print(f"{val:>6.2f}  {label:<6}  {name}")
+for name, label, val, approximate, lat, lon in results:
+    print(f"{val:>6.2f}  {label:<6}  {name}{' (approx.)' if approximate else ''}")
 
-hot_vals = [v for _, l, v in results if l == "hot"]
-cool_vals = [v for _, l, v in results if l == "cool"]
+hot_vals = [v for _, l, v, _, _, _ in results if l == "hot"]
+cool_vals = [v for _, l, v, _, _, _ in results if l == "cool"]
 min_hot, max_cool = min(hot_vals), max(cool_vals)
 print(f"\nColdest 'hot' point: {min_hot:.2f}°C. Warmest 'cool' point: {max_cool:.2f}°C.")
 if min_hot > max_cool:
     print(f"Clean separation, no overlap (gap: {min_hot - max_cool:.2f}°C) - Landsat agrees with the study's naming.")
 else:
     print("Overlap found - at least one named point doesn't rank where the study says it should.")
+
+# Written for Week 3's story panel - the study-vs-satellite callout should read this
+# file, not have these numbers hand-typed into JSX.
+OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
+OUT_PATH.write_text(json.dumps({
+    "method": "Landsat 8+9 median surface temperature, summer (Jun-Aug) 2022-2025, sampled at each named point",
+    "points": [
+        {"name": name, "studySays": label, "tempC": round(val, 2), "approximate": approximate, "lat": lat, "lon": lon}
+        for name, label, val, approximate, lat, lon in results
+    ],
+    "coldestHotPointC": round(min_hot, 2),
+    "warmestCoolPointC": round(max_cool, 2),
+    "cleanSeparation": min_hot > max_cool,
+}, indent=2, ensure_ascii=False))
+print(f"Wrote {OUT_PATH}")

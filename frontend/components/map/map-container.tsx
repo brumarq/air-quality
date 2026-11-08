@@ -11,6 +11,7 @@ import { NO2ReductionCard } from "@/components/communes/no2-reduction-card"
 import { NO2TubeDetailCard } from "@/components/communes/no2-tube-detail-card"
 import { HeatMapCard } from "@/components/communes/heat-map-card"
 import { HeatDetailCard, type HeatSelection } from "@/components/communes/heat-detail-card"
+import { HeatStoryPanel } from "@/components/communes/heat-story-panel"
 import { ReportCard } from "@/components/communes/report-card"
 import { AirQualityStation } from "@/lib/types/air-quality"
 import { POLLUTANT_LIMITS } from "@/lib/constants/air-quality-limits"
@@ -186,6 +187,12 @@ export function MapContainer({
           {mode === "air" && (
             <div className="self-stretch pointer-events-none">
               <PollutantTrendChart history={history} limit={selectedLimit} range={selectedRange} />
+            </div>
+          )}
+
+          {mode === "heat" && heatData && (
+            <div className="self-stretch flex justify-end pointer-events-none">
+              <HeatStoryPanel data={heatData} communeName={communeConfig.name} tubeDataset={tubeDataset} map={map} />
             </div>
           )}
         </div>
