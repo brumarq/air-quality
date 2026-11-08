@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from "react"
 import type mapboxgl from "mapbox-gl"
-import type { NO2TubeDataset } from "@/domain/no2-tubes"
+import { NO2_LIMITS } from "@/domain/limits"
+import type { No2TubeDataset } from "@/domain/no2-tubes"
 import { addNo2TubeLayers, removeNo2TubeLayers, NO2_TUBE_LAYER_ID } from "./no2-tube-layers"
 
 interface UseNo2TubeMarkersProps {
   map: mapboxgl.Map | null
   mapLoaded: boolean
-  dataset: NO2TubeDataset | null
+  dataset: No2TubeDataset | null
   visible: boolean
 }
 
@@ -28,7 +29,7 @@ export function useNo2TubeMarkers({ map, mapLoaded, dataset, visible }: UseNo2Tu
       return
     }
 
-    addNo2TubeLayers(map, dataset)
+    addNo2TubeLayers(map, dataset, NO2_LIMITS)
 
     const handleClick = (e: mapboxgl.MapMouseEvent) => {
       const id = e.features?.[0]?.properties?.id

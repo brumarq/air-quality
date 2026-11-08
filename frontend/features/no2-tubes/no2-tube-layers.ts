@@ -1,22 +1,23 @@
-import type { NO2TubeDataset } from "@/domain/no2-tubes"
-import { getLatestReading, getTubeColor, getTubeYears } from "@/domain/no2-tubes"
+import type { No2Limits } from "@/domain/limits"
+import { classifyNo2, getLatestReading, type No2TubeDataset } from "@/domain/no2-tubes"
+import { tokens } from "@/theme/tokens"
+import { NO2_BAND_COLOR } from "./no2-band-colors"
 
 export const NO2_TUBE_SOURCE_ID = "no2-tube-data"
 export const NO2_TUBE_LAYER_ID = "no2-tube-markers"
 
-export function generateNo2TubeGeoJSON(dataset: NO2TubeDataset) {
-  const years = getTubeYears(dataset)
+export function generateNo2TubeGeoJSON(dataset: No2TubeDataset, limits: No2Limits) {
 
   return {
     type: "FeatureCollection" as const,
     features: dataset.tubes.map((tube) => {
-      const latest = getLatestReading(tube, years)
+      const latest = getLatestReading(tube)
       return {
         type: "Feature" as const,
         properties: {
           id: tube.id,
           name: tube.name,
-          color: latest ? getTubeColor(latest.value, dataset) : "#9CA3AF",
+          color: latest ? NO2_BAND_COLOR[classifyNo2(latest.value, limits)] : tokens.no2.markerNoData,
         },
         geometry: {
           type: "Point" as const,
@@ -29,8 +30,8 @@ export function generateNo2TubeGeoJSON(dataset: NO2TubeDataset) {
 
 // Mirrors addAirQualityLayers in map-utils.ts, as its own source/layer pair so tube
 // markers can be toggled independently of the live station markers.
-export function addNo2TubeLayers(map: mapboxgl.Map, dataset: NO2TubeDataset) {
-  const geojson = generateNo2TubeGeoJSON(dataset)
+export function addNo2TubeLayers(map: mapboxgl.Map, dataset: No2TubeDataset, limits: No2Limits) {
+  const geojson = generateNo2TubeGeoJSON(dataset, limits)
 
   if (!map.getSource(NO2_TUBE_SOURCE_ID)) {
     map.addSource(NO2_TUBE_SOURCE_ID, { type: "geojson", data: geojson })

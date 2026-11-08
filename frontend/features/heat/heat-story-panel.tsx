@@ -3,14 +3,14 @@
 import type mapboxgl from "mapbox-gl"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { getHeatYears, type HeatMapData } from "@/domain/heat"
-import type { NO2TubeDataset } from "@/domain/no2-tubes"
-import { getReductionNeeded } from "@/domain/no2-tubes"
+import { NO2_LIMITS } from "@/domain/limits"
+import { getReductionNeeded, type No2TubeDataset } from "@/domain/no2-tubes"
 import { HeatHotspotList } from "./heat-hotspot-list"
 
 interface HeatStoryPanelProps {
   data: HeatMapData
   communeName: string
-  tubeDataset?: NO2TubeDataset | null
+  tubeDataset?: No2TubeDataset | null
   map: mapboxgl.Map | null
 }
 
@@ -43,7 +43,7 @@ export function HeatStoryPanel({ data, communeName, tubeDataset, map }: HeatStor
 
   const kennedyStudyPoint = study?.points.find((p) => p.name.toLowerCase().includes("kennedy"))
   const kennedyReduction = tubeDataset
-    ? getReductionNeeded(tubeDataset).find((r) => r.tubeId === "kennedy")
+    ? getReductionNeeded(tubeDataset, NO2_LIMITS).find((r) => r.tubeId === "kennedy")
     : undefined
 
   function flyToHottestSpot() {
@@ -128,7 +128,7 @@ export function HeatStoryPanel({ data, communeName, tubeDataset, map }: HeatStor
           </div>
         </div>
 
-        {kennedyStudyPoint && kennedyReduction && (
+        {kennedyStudyPoint && kennedyReduction?.status === "ok" && (
           <p className="text-xs text-ink-strong pt-3 border-t">
             <span className="font-medium">Boulevard Kennedy:</span> a heat hotspot in the PRO-SUD study, and NO₂
             still{" "}

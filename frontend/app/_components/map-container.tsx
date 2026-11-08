@@ -11,7 +11,7 @@ import type { MapStatus } from "@/map/use-mapbox-instance"
 import { CommuneHeaderCard, type AreaMode } from "./commune-header-card"
 import { ReportCard } from "./report-card"
 import { AirQualityStation } from "@/domain/air-quality"
-import { POLLUTANT_LIMITS, type PollutantParameter } from "@/domain/limits"
+import { NO2_LIMITS, POLLUTANT_LIMITS, type PollutantParameter } from "@/domain/limits"
 import { TIME_RANGES, type RangeKey } from "@/domain/time-ranges"
 import { getNo2TubeDataset } from "@/api/no2-tubes"
 import { getHeatYears } from "@/domain/heat"
@@ -158,10 +158,11 @@ export function MapContainer({
               />
               {tubeDataset &&
                 (selectedTubeId ? (
-                  <NO2TubeDetailCard dataset={tubeDataset} tubeId={selectedTubeId} onBack={() => setSelectedTubeId(null)} />
+                  <NO2TubeDetailCard dataset={tubeDataset} limits={NO2_LIMITS} tubeId={selectedTubeId} onBack={() => setSelectedTubeId(null)} />
                 ) : (
                   <NO2ReductionCard
                     dataset={tubeDataset}
+                    limits={NO2_LIMITS}
                     selectedTubeId={selectedTubeId}
                     onSelectTube={setSelectedTubeId}
                   />

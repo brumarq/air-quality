@@ -19,6 +19,22 @@ export const POLLUTANT_LIMITS: Record<PollutantParameter, PollutantLimit> = {
   pm10: { parameter: "pm10", label: "PM10", unit: "µg/m³", limitToday: 40, limit2030: 20 },
 }
 
+/** The NO2 values the tube campaign is read against, in µg/m³ (annual means). */
+export interface No2Limits {
+  limitToday: number
+  limitTarget: number
+  targetYear: number
+  whoGuideline: number
+}
+
+export const NO2_LIMITS: No2Limits = {
+  limitToday: POLLUTANT_LIMITS.no2.limitToday,
+  limitTarget: POLLUTANT_LIMITS.no2.limit2030,
+  targetYear: 2030,
+  // WHO 2021 air quality guideline for the annual NO2 mean.
+  whoGuideline: 10,
+}
+
 export type LimitStatus = "below-2030" | "above-2030" | "above-today"
 
 export function getLimitStatus(value: number, limit: PollutantLimit): LimitStatus {

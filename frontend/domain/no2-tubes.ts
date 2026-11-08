@@ -1,10 +1,20 @@
-export interface NO2TubeSource {
+import type { No2Limits } from "@/domain/limits"
+
+/** One annual mean from a passive-tube campaign. */
+export interface No2Reading {
+  year: number
+  value: number
+}
+
+/** The campaign report a year's values come from. */
+export interface No2Source {
+  year: number
   title: string
   url: string
   page: number
 }
 
-export interface NO2Tube {
+export interface No2Tube {
   id: string
   name: string
   note?: string
@@ -12,87 +22,82 @@ export interface NO2Tube {
   lat: number
   lng: number
   approximateLocation: boolean
-  readings: Record<string, number | null>
+  /** Only years with a value, oldest first. */
+  readings: No2Reading[]
 }
 
-export interface NO2TubeDataset {
+export interface No2TubeDataset {
   commune: string
-  pollutant: string
   unit: string
-  limitToday: number
-  limit2030: number
   method: string
-  sources: Record<string, NO2TubeSource>
-  tubes: NO2Tube[]
+  /** Every year the campaign published a report, oldest first. A tube may have no
+   *  reading in some of them (e.g. it was installed later). */
+  campaignYears: number[]
+  sources: No2Source[]
+  tubes: No2Tube[]
 }
 
-export function getTubeYears(dataset: NO2TubeDataset): number[] {
-  return Object.keys(dataset.sources).map(Number).sort((a, b) => a - b)
+export function getLatestReading(tube: No2Tube): No2Reading | null {
+  return tube.readings.at(-1) ?? null
 }
 
-export function getLatestReading(tube: NO2Tube, years: number[]): { year: number; value: number } | null {
-  for (let i = years.length - 1; i >= 0; i--) {
-    const value = tube.readings[String(years[i])]
-    if (value !== null && value !== undefined) return { year: years[i], value }
-  }
-  return null
+export function getReading(tube: No2Tube, year: number): number | null {
+  return tube.readings.find((r) => r.year === year)?.value ?? null
 }
 
-export interface ReductionNeeded {
-  tubeId: string
-  name: string
-  latestYear: number
-  latestValue: number
-  pctVsTarget: number
-  neededPerYear: number | null
-  lastYearChange: number | null
-}
-
-/**
- * The per-year reduction a site needs to reach limit2030 by 2030, plus its most recent
- * year-over-year change. Deliberately not a fitted trend line through 5-8 noisy points -
- * see ESCH-HEAT-PROFILE-PLAN.md Step 2.5 for why.
- */
-export function getReductionNeeded(dataset: NO2TubeDataset, targetYear = 2030): ReductionNeeded[] {
-  const years = getTubeYears(dataset)
-
-  return dataset.tubes.map((tube) => {
-    const latest = getLatestReading(tube, years)
-    if (!latest) {
-      return {
-        tubeId: tube.id,
-        name: tube.name,
-        latestYear: years[years.length - 1],
-        latestValue: NaN,
-        pctVsTarget: NaN,
-        neededPerYear: null,
-        lastYearChange: null,
-      }
+export type ReductionNeeded =
+  | { status: "no-data"; tubeId: string; name: string }
+  | {
+      status: "ok"
+      tubeId: string
+      name: string
+      latestYear: number
+      latestValue: number
+      /** How far the latest value is above (+) or below (−) the target, in percent. */
+      pctVsTarget: number
+      /** The yearly reduction that reaches the target by the target year; null when the
+       *  tube is already at or below it, or the target year has passed. */
+      neededPerYear: number | null
+      /** Latest value minus the previous calendar year's; null if that year has no reading. */
+      changeVsPreviousYear: number | null
     }
 
+/**
+ * The per-year reduction each site needs to reach the target by the target year, plus its
+ * change from the previous calendar year. Deliberately not a fitted trend line: with 5-8
+ * noisy annual points per tube, a fitted slope would claim more certainty than the data has.
+ */
+export function getReductionNeeded(dataset: No2TubeDataset, limits: No2Limits): ReductionNeeded[] {
+  return dataset.tubes.map((tube) => {
+    const latest = getLatestReading(tube)
+    if (!latest) return { status: "no-data", tubeId: tube.id, name: tube.name }
+
     const { year: latestYear, value: latestValue } = latest
-    const pctVsTarget = ((latestValue - dataset.limit2030) / dataset.limit2030) * 100
-    const yearsRemaining = targetYear - latestYear
-    const neededPerYear =
-      latestValue <= dataset.limit2030 || yearsRemaining <= 0
-        ? null
-        : (latestValue - dataset.limit2030) / yearsRemaining
+    const target = limits.limitTarget
+    const yearsRemaining = limits.targetYear - latestYear
+    const previous = getReading(tube, latestYear - 1)
 
-    const priorYear = years[years.indexOf(latestYear) - 1]
-    const priorValue = priorYear !== undefined ? tube.readings[String(priorYear)] : null
-    const lastYearChange =
-      priorValue !== null && priorValue !== undefined ? Number((latestValue - priorValue).toFixed(1)) : null
-
-    return { tubeId: tube.id, name: tube.name, latestYear, latestValue, pctVsTarget, neededPerYear, lastYearChange }
+    return {
+      status: "ok",
+      tubeId: tube.id,
+      name: tube.name,
+      latestYear,
+      latestValue,
+      pctVsTarget: ((latestValue - target) / target) * 100,
+      neededPerYear: latestValue <= target || yearsRemaining <= 0 ? null : (latestValue - target) / yearsRemaining,
+      changeVsPreviousYear: previous === null ? null : latestValue - previous,
+    }
   })
 }
+
+export type No2Band = "above-limit" | "above-2030" | "above-who" | "within-who"
 
 // Matches the official Pacte Climat report's own classification (e.g. 2023 report fig. 3):
 // red above today's limit, orange/yellow above the 2030 value, green above the WHO
 // guideline, blue at or below it.
-export function getTubeColor(value: number, dataset: NO2TubeDataset): string {
-  if (value > dataset.limitToday) return "#DC2626" // red
-  if (value > dataset.limit2030) return "#F59E0B" // orange/yellow
-  if (value > 10) return "#22C55E" // green
-  return "#3B82F6" // blue
+export function classifyNo2(value: number, limits: No2Limits): No2Band {
+  if (value > limits.limitToday) return "above-limit"
+  if (value > limits.limitTarget) return "above-2030"
+  if (value > limits.whoGuideline) return "above-who"
+  return "within-who"
 }

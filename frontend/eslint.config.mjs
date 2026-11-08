@@ -89,7 +89,11 @@ const eslintConfig = [
   ]),
   {
     files: ["domain/**"],
-    rules: { "no-restricted-syntax": ["error", NO_DYNAMIC_IMPORT, ...DOMAIN_PURITY] },
+    rules: {
+      "no-restricted-syntax": ["error", NO_DYNAMIC_IMPORT, ...DOMAIN_PURITY],
+      // A missing value is a case in the type (e.g. { status: "no-data" }), not a NaN.
+      "no-restricted-globals": ["error", { name: "NaN", message: "Model a missing value in the type instead of NaN." }],
+    },
   },
   restrict(["domain/**"], [
     ban(["@/app/**", "@/features/*", "@/map/*", "@/api/*", "@/components/**", "@/lib/*", "@/data/**", "react", "react-dom", "mapbox-gl", "next", "next/*"], "domain/ is pure TypeScript: it may only import other domain/ files."),
