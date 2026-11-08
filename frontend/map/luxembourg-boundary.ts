@@ -1,3 +1,4 @@
+import { useEffect } from "react"
 import type mapboxgl from "mapbox-gl"
 
 // Add Luxembourg boundary to the map
@@ -37,4 +38,10 @@ export const addLuxembourgBoundary = (map: mapboxgl.Map) => {
       },
     })
   }
+}
+
+export function useLuxembourgBoundary(map: mapboxgl.Map | null, mapLoaded: boolean) {
+  useEffect(() => {
+    if (map && mapLoaded) addLuxembourgBoundary(map)
+  }, [map, mapLoaded])
 }

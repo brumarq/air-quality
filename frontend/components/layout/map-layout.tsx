@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { MapContainer } from "@/components/map/map-container"
-import { useMap } from "@/hooks/use-map"
+import { useMapboxInstance } from "@/map/use-mapbox-instance"
+import { useLuxembourgBoundary } from "@/map/luxembourg-boundary"
+import { useStationLayers } from "@/features/air-quality"
 import { getAirQualityStations } from "@/api/air-quality"
 import type { AirQualityStation } from "@/domain/air-quality"
 import { CommuneConfig } from "@/domain/communes"
@@ -33,13 +35,14 @@ export function MapLayout({ communeConfig }: MapLayoutProps) {
     fetchStations()
   }, [communeConfig])
 
-  const { mapContainer, map, mapLoaded } = useMap({
-    stations,
+  const { mapContainer, map, mapLoaded } = useMapboxInstance({
     initialLng: communeConfig.center[0],
     initialLat: communeConfig.center[1],
     initialZoom: communeConfig.zoom,
     showNavigationControl: false,
   })
+  useLuxembourgBoundary(map, mapLoaded)
+  useStationLayers(map, mapLoaded, stations)
 
   return (
     stationsLoaded && (

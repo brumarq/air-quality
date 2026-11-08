@@ -1,4 +1,7 @@
+import type mapboxgl from "mapbox-gl"
 import type { AirQualityStation } from "@/domain/air-quality"
+
+export const STATION_LAYER_ID = "air-quality-stations"
 
 // Generate GeoJSON for air quality data
 export const generateAirQualityGeoJSON = (stations: AirQualityStation[]) => {
@@ -38,7 +41,7 @@ export const addAirQualityLayers = (
   // Add station markers
   if (!map.getLayer("air-quality-stations")) {
     map.addLayer({
-      id: "air-quality-stations",
+      id: STATION_LAYER_ID,
       type: "circle",
       source: "air-quality-data",
       paint: {
