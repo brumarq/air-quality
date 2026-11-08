@@ -5,23 +5,15 @@ import { ArrowLeft } from "lucide-react"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { BUILDING_KIND_LABEL, cellYear, statsForYear, type HeatMapData } from "@/domain/heat"
-
-export type HeatSelection = { type: "cell"; id: string } | { type: "building"; id: string }
+import { tokens } from "@/theme/tokens"
+import { heatAnomalyColor } from "./anomaly-color"
+import type { HeatSelection } from "./use-heat-map-layers"
 
 interface HeatDetailCardProps {
   data: HeatMapData
   selection: HeatSelection
   year: number
   onBack: () => void
-}
-
-function anomalyColor(value: number | null) {
-  if (value === null) return "#E5E7EB"
-  if (value <= -5) return "#2166AC"
-  if (value <= 0) return "#67A9CF"
-  if (value <= 5) return "#FDDBC7"
-  if (value <= 8) return "#EF8A62"
-  return "#B2182B"
 }
 
 export function HeatDetailCard({ data, selection, year, onBack }: HeatDetailCardProps) {
@@ -67,14 +59,14 @@ export function HeatDetailCard({ data, selection, year, onBack }: HeatDetailCard
 
           <ResponsiveContainer width="100%" height={120}>
             <BarChart data={rows} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
-              <XAxis dataKey="year" fontSize={11} stroke="#737373" />
-              <YAxis fontSize={11} stroke="#737373" width={32} />
+              <XAxis dataKey="year" fontSize={11} stroke={tokens.chart.axis} />
+              <YAxis fontSize={11} stroke={tokens.chart.axis} width={32} />
               <Tooltip
                 formatter={(value: number) => (value === null ? ["no data", ""] : [`${value > 0 ? "+" : ""}${value}°C vs. commune`, ""])}
               />
               <Bar dataKey="anomaly" radius={[3, 3, 0, 0]}>
                 {rows.map((row) => (
-                  <Cell key={row.year} fill={anomalyColor(row.anomaly)} />
+                  <Cell key={row.year} fill={heatAnomalyColor(row.anomaly)} />
                 ))}
               </Bar>
             </BarChart>

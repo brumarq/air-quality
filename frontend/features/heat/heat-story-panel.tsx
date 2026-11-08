@@ -1,8 +1,8 @@
 "use client"
 
-import type mapboxgl from "mapbox-gl"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { buildHeatStory, type HeatMapData } from "@/domain/heat"
+import type { LngLat } from "@/domain/shared/geo"
 import { NO2_LIMITS } from "@/domain/limits"
 import { getReductionNeeded, type No2TubeDataset } from "@/domain/no2-tubes"
 import { HeatHotspotList } from "./heat-hotspot-list"
@@ -11,10 +11,10 @@ interface HeatStoryPanelProps {
   data: HeatMapData
   communeName: string
   tubeDataset?: No2TubeDataset | null
-  map: mapboxgl.Map | null
+  onFlyTo: (lngLat: LngLat) => void
 }
 
-export function HeatStoryPanel({ data, communeName, tubeDataset, map }: HeatStoryPanelProps) {
+export function HeatStoryPanel({ data, communeName, tubeDataset, onFlyTo }: HeatStoryPanelProps) {
   const story = buildHeatStory(data)
   const { study, years, hottestSpot, sensitiveBuildings } = story
   const yearRange = years ? `${years.first}–${years.last}` : ""
@@ -26,7 +26,7 @@ export function HeatStoryPanel({ data, communeName, tubeDataset, map }: HeatStor
     : undefined
 
   function flyToHottestSpot() {
-    if (map && spot?.lngLat) map.flyTo({ center: [spot.lngLat[0], spot.lngLat[1]], zoom: 16 })
+    if (spot?.lngLat) onFlyTo(spot.lngLat)
   }
 
   return (
@@ -67,7 +67,7 @@ export function HeatStoryPanel({ data, communeName, tubeDataset, map }: HeatStor
             warmestCoolPointC={study.warmestCoolPointC}
             cleanSeparation={study.cleanSeparation}
             yearRange={yearRange}
-            map={map}
+            onFlyTo={onFlyTo}
           />
         )}
 

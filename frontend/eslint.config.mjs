@@ -79,6 +79,24 @@ const eslintConfig = [
     ignores: ["app/**"],
     rules: { "no-restricted-syntax": ["error", NO_DYNAMIC_IMPORT] },
   },
+  {
+    // A component defined inside another remounts (and loses its state) on every render.
+    files: ["**/*.tsx"],
+    rules: { "react/no-unstable-nested-components": "error" },
+  },
+  {
+    // Feature components render view models. Loops belong in domain/ or a model file, and
+    // the map is reached through hooks and *-layers.ts files, never from a component.
+    files: ["features/*/*.tsx"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        NO_DYNAMIC_IMPORT,
+        { selector: "ForStatement, ForOfStatement, ForInStatement", message: "Compute this in a view-model function, not in a component." },
+        { selector: "ImportDeclaration[source.value='mapbox-gl']", message: "Components don't touch the map. Take a callback (e.g. onFlyTo) instead." },
+      ],
+    },
+  },
   restrict(["app/**"], []),
   restrict(["features/**"], [
     ban(["@/features/*", "@/app/*", "@/app/**"], "Features must not import other features or app/. Inside a feature, use relative imports."),

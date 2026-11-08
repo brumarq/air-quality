@@ -3,28 +3,33 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
-import { statsForYear, type HeatMapData } from "@/domain/heat"
+import { statsForYear, type HeatMapData, type StudyOverlay } from "@/domain/heat"
 import { tokens } from "@/theme/tokens"
 import type { HeatLayerToggles } from "./use-heat-map-layers"
 
 interface HeatMapCardProps {
   data: HeatMapData
+  studyOverlay: StudyOverlay | null
   year: number
   onSelectYear: (year: number) => void
   toggles: HeatLayerToggles
   onToggle: (key: keyof HeatLayerToggles, value: boolean) => void
 }
 
-const TOGGLE_LABELS: { key: keyof HeatLayerToggles; label: string; hint: string }[] = [
+type ToggleLabel = { key: keyof HeatLayerToggles; label: string; hint: string }
+
+const LAYER_TOGGLES: ToggleLabel[] = [
   { key: "grid", label: "Satellite heat", hint: "Landsat surface temp, 100m" },
   { key: "ndvi", label: "Vegetation (NDVI)", hint: "Sentinel-2, 10m source" },
   { key: "buildings", label: "Schools & care homes", hint: "OSM, point locations" },
-  { key: "prosudWms", label: "PRO-SUD study map", hint: "Their own modelled layer" },
 ]
 
-export function HeatMapCard({ data, year, onSelectYear, toggles, onToggle }: HeatMapCardProps) {
+export function HeatMapCard({ data, studyOverlay, year, onSelectYear, toggles, onToggle }: HeatMapCardProps) {
   const years = data.years
   const yearStats = statsForYear(data, year)
+  const toggleLabels: ToggleLabel[] = studyOverlay
+    ? [...LAYER_TOGGLES, { key: "studyOverlay", label: studyOverlay.label, hint: studyOverlay.hint }]
+    : LAYER_TOGGLES
 
   return (
     <Card className="pointer-events-auto w-96 shadow-lg">
@@ -78,7 +83,7 @@ export function HeatMapCard({ data, year, onSelectYear, toggles, onToggle }: Hea
         </div>
 
         <div className="flex flex-col gap-2.5 pt-3 border-t">
-          {TOGGLE_LABELS.map(({ key, label, hint }) => (
+          {toggleLabels.map(({ key, label, hint }) => (
             <label key={key} className="flex items-center justify-between gap-3 text-sm">
               <span className="flex flex-col">
                 <span>{label}</span>
@@ -90,8 +95,7 @@ export function HeatMapCard({ data, year, onSelectYear, toggles, onToggle }: Hea
         </div>
 
         <p className="text-xs text-muted-foreground pt-2 border-t">
-          © Administration du Cadastre et de la Topographie / Geoportail.lu for the PRO-SUD layer. Click a square or
-          a pin for detail.
+          {studyOverlay && `${studyOverlay.attribution} `}Click a square or a pin for detail.
         </p>
       </CardContent>
     </Card>

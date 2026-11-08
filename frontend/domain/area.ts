@@ -1,3 +1,4 @@
+import type { StudyOverlay } from "@/domain/heat"
 import type { LngLat } from "@/domain/shared/geo"
 
 interface AreaBase {
@@ -22,6 +23,8 @@ export interface CommuneArea extends AreaBase {
   slug: string
   /** Which prepared files exist under public/data/<slug>/. */
   datasets: { no2Tubes: boolean; heat: boolean }
+  /** The commune's own heat study as a map overlay, if it has a public one. */
+  studyOverlay?: StudyOverlay
 }
 
 export type Area = CountryArea | CommuneArea

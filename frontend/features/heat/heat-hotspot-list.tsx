@@ -1,7 +1,8 @@
 "use client"
 
-import type mapboxgl from "mapbox-gl"
 import type { StudyComparisonPoint } from "@/domain/heat"
+import type { LngLat } from "@/domain/shared/geo"
+import { tokens } from "@/theme/tokens"
 
 interface HeatHotspotListProps {
   points: StudyComparisonPoint[]
@@ -9,61 +10,57 @@ interface HeatHotspotListProps {
   warmestCoolPointC: number
   cleanSeparation: boolean
   yearRange: string
-  map: mapboxgl.Map | null
+  onFlyTo: (lngLat: LngLat) => void
+}
+
+interface HotspotRowProps {
+  point: StudyComparisonPoint
+  /** Width of the in-row temperature bar, 0-100. */
+  barPct: number
+  onFlyTo: (lngLat: LngLat) => void
+}
+
+function HotspotRow({ point, barPct, onFlyTo }: HotspotRowProps) {
+  return (
+    <button type="button" onClick={() => onFlyTo(point.lngLat)} className="relative w-full text-left rounded overflow-hidden">
+      <div
+        className="absolute inset-y-0 left-0"
+        style={{
+          width: `${barPct}%`,
+          background: point.studySays === "hot" ? tokens.heat.study.hot : tokens.heat.study.cool,
+          opacity: 0.15,
+        }}
+      />
+      <div className="relative flex items-center justify-between px-2 py-1 text-xs hover:bg-scrim/5 rounded">
+        <span>
+          {point.name}
+          {point.approximate && "*"}
+        </span>
+        <span className="tabular-nums font-medium shrink-0 pl-2">{point.tempC.toFixed(1)}°C</span>
+      </div>
+    </button>
+  )
+}
+
+/** Maps each temperature onto 0-100% of a scale padded half a degree past the extremes. */
+function barScale(points: StudyComparisonPoint[]): (tempC: number) => number {
+  if (points.length === 0) return () => 0
+  const temps = points.map((p) => p.tempC)
+  const min = Math.floor(Math.min(...temps) - 0.5)
+  const max = Math.ceil(Math.max(...temps) + 0.5)
+  return (tempC) => ((tempC - min) / (max - min)) * 100
 }
 
 /**
- * The study's named points vs. satellite, as a two-group list - kept over a dot-strip
- * visualization on request: place names are what an officer recognises on sight, which
- * a strip of colored dots alone doesn't give them. Each row still carries the dot
- * strip's "see it in one second" effect via an in-row temperature bar, plus a labelled
- * gap divider and click-to-fly, matching the NO2 tube rows' click pattern.
+ * The study's named points vs. satellite, as a two-group list rather than a dot strip:
+ * place names are what an officer recognises on sight. Each row keeps the strip's
+ * at-a-glance effect with an in-row temperature bar, and flies the map there on click,
+ * like the NO2 tube rows.
  */
-export function HeatHotspotList({
-  points,
-  coldestHotPointC,
-  warmestCoolPointC,
-  cleanSeparation,
-  yearRange,
-  map,
-}: HeatHotspotListProps) {
+export function HeatHotspotList({ points, coldestHotPointC, warmestCoolPointC, cleanSeparation, yearRange, onFlyTo }: HeatHotspotListProps) {
   const hotPoints = points.filter((p) => p.studySays === "hot").sort((a, b) => b.tempC - a.tempC)
   const coolPoints = points.filter((p) => p.studySays === "cool").sort((a, b) => b.tempC - a.tempC)
-
-  const allTemps = points.map((p) => p.tempC)
-  const scaleMin = Math.floor(Math.min(...allTemps) - 0.5)
-  const scaleMax = Math.ceil(Math.max(...allTemps) + 0.5)
-  const barPct = (t: number) => ((t - scaleMin) / (scaleMax - scaleMin)) * 100
-
-  function flyTo(p: StudyComparisonPoint) {
-    map?.flyTo({ center: [p.lngLat[0], p.lngLat[1]], zoom: 16 })
-  }
-
-  function Row({ p }: { p: StudyComparisonPoint }) {
-    return (
-      <button
-        type="button"
-        onClick={() => flyTo(p)}
-        className="relative w-full text-left rounded overflow-hidden"
-      >
-        <div
-          className="absolute inset-y-0 left-0"
-          style={{
-            width: `${barPct(p.tempC)}%`,
-            background: p.studySays === "hot" ? "#B2182B" : "#2166AC",
-            opacity: 0.15,
-          }}
-        />
-        <div className="relative flex items-center justify-between px-2 py-1 text-xs hover:bg-scrim/5 rounded">
-          <span>
-            {p.name}
-            {p.approximate && "*"}
-          </span>
-          <span className="tabular-nums font-medium shrink-0 pl-2">{p.tempC.toFixed(1)}°C</span>
-        </div>
-      </button>
-    )
-  }
+  const barPct = barScale(points)
 
   return (
     <div>
@@ -74,16 +71,14 @@ export function HeatHotspotList({
       <p className="text-xs font-semibold text-study-hot-label px-2 mb-0.5">Named hot</p>
       <div className="flex flex-col">
         {hotPoints.map((p) => (
-          <Row key={p.name} p={p} />
+          <HotspotRow key={p.name} point={p} barPct={barPct(p.tempC)} onFlyTo={onFlyTo} />
         ))}
       </div>
 
       <div className="flex items-center gap-2 py-1.5">
         <div className="flex-1 border-t border-dashed border-study-separation-line" />
         <span className="text-xs text-study-separation-text font-medium whitespace-nowrap">
-          {cleanSeparation
-            ? `${(coldestHotPointC - warmestCoolPointC).toFixed(1)}°C gap — no overlap`
-            : "overlap found"}
+          {cleanSeparation ? `${(coldestHotPointC - warmestCoolPointC).toFixed(1)}°C gap — no overlap` : "overlap found"}
         </span>
         <div className="flex-1 border-t border-dashed border-study-separation-line" />
       </div>
@@ -91,13 +86,11 @@ export function HeatHotspotList({
       <p className="text-xs font-semibold text-study-cool-label px-2 mb-0.5">Named cool</p>
       <div className="flex flex-col">
         {coolPoints.map((p) => (
-          <Row key={p.name} p={p} />
+          <HotspotRow key={p.name} point={p} barPct={barPct(p.tempC)} onFlyTo={onFlyTo} />
         ))}
       </div>
 
-      {points.some((p) => p.approximate) && (
-        <p className="text-xs text-muted-foreground px-2 pt-1">* approximate location</p>
-      )}
+      {points.some((p) => p.approximate) && <p className="text-xs text-muted-foreground px-2 pt-1">* approximate location</p>}
     </div>
   )
 }

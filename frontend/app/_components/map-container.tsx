@@ -1,9 +1,9 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import "mapbox-gl/dist/mapbox-gl.css"
 import { CommuneReadingsPanel, PollutantTrendChart, useSensorHistory } from "@/features/air-quality"
-import { HeatDetailCard, HeatMapCard, HeatMessage, HeatStoryPanel, useHeatMapLayers, type HeatLayerToggles, type HeatSelection } from "@/features/heat"
+import { HeatDetailCard, HeatMapCard, HeatMessage, HeatStoryPanel, useHeatMapLayers, type HeatLayerToggles } from "@/features/heat"
 import { NO2ReductionCard, NO2TubeDetailCard, NO2TubesMessage, useNo2TubeMarkers } from "@/features/no2-tubes"
 import { useMapResize } from "@/map/use-map-resize"
 import { CustomMapControls } from "@/map/custom-map-controls"
@@ -16,6 +16,7 @@ import { TIME_RANGES, type RangeKey } from "@/domain/time-ranges"
 import { fetchNo2TubeDataset } from "@/api/no2-tubes"
 import { useAsync } from "@/lib/use-async"
 import type { Area } from "@/domain/area"
+import type { LngLat } from "@/domain/shared/geo"
 
 interface MapContainerProps {
   sidebarCollapsed: boolean
@@ -35,7 +36,6 @@ export function MapContainer({
   area
 }: MapContainerProps) {
   const commune = area.kind === "commune" ? area : null
-  const mapLoaded = map !== null
   // Use the resize hook to handle map resize when sidebar state changes
   useMapResize(map, sidebarCollapsed)
 
@@ -62,51 +62,32 @@ export function MapContainer({
     visible: mode === "air",
   })
 
-  // Heat mode: see ESCH-HEAT-PROFILE-PLAN.md Step 3, Week 2. Grid + buildings shown by
-  // default; NDVI and the PRO-SUD study overlay are off by default to avoid clutter.
-  const [heatYear, setHeatYear] = useState(2025)
+  // Grid and buildings are on by default; NDVI and the study overlay are off to avoid clutter.
   const [heatToggles, setHeatToggles] = useState<HeatLayerToggles>({
     grid: true,
     ndvi: false,
     buildings: true,
-    prosudWms: false,
+    studyOverlay: false,
   })
-  const [heatSelection, setHeatSelection] = useState<HeatSelection | null>(null)
+  // The year the user picked, if any; otherwise the latest summer in the data.
+  const [pickedHeatYear, setPickedHeatYear] = useState<number | null>(null)
 
   const {
     load: heatLoad,
     data: heatData,
-    selectedCellId,
-    setSelectedCellId,
-    selectedBuildingId,
-    setSelectedBuildingId,
+    year: heatYear,
+    selection: heatSelection,
+    setSelection: setHeatSelection,
   } = useHeatMapLayers({
     map,
-    mapLoaded,
     communeSlug: commune?.datasets.heat ? commune.slug : null,
+    studyOverlay: commune?.studyOverlay ?? null,
     visible: mode === "heat",
-    year: heatYear,
+    pickedYear: pickedHeatYear,
     toggles: heatToggles,
   })
 
-  useEffect(() => {
-    if (selectedCellId) setHeatSelection({ type: "cell", id: selectedCellId })
-    else if (selectedBuildingId) setHeatSelection({ type: "building", id: selectedBuildingId })
-    else setHeatSelection(null)
-  }, [selectedCellId, selectedBuildingId])
-
-  useEffect(() => {
-    if (heatData) {
-      const years = heatData.years
-      if (years.length && !years.includes(heatYear)) setHeatYear(years[years.length - 1])
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [heatData])
-
-  function clearHeatSelection() {
-    setSelectedCellId(null)
-    setSelectedBuildingId(null)
-  }
+  const flyTo = (lngLat: LngLat) => map?.flyTo({ center: [lngLat[0], lngLat[1]], zoom: 16 })
 
   return (
     <div className="relative flex-1 h-full">
@@ -186,13 +167,16 @@ export function MapContainer({
                 <HeatMessage role="alert">Couldn&apos;t load heat data.</HeatMessage>
               ) : heatLoad.data.status === "not-prepared" ? (
                 <HeatMessage>No heat-map data prepared for this commune yet.</HeatMessage>
+              ) : heatYear === null ? (
+                <HeatMessage>No heat-map data prepared for this commune yet.</HeatMessage>
               ) : heatSelection ? (
-                <HeatDetailCard data={heatLoad.data.data} selection={heatSelection} year={heatYear} onBack={clearHeatSelection} />
+                <HeatDetailCard data={heatLoad.data.data} selection={heatSelection} year={heatYear} onBack={() => setHeatSelection(null)} />
               ) : (
                 <HeatMapCard
                   data={heatLoad.data.data}
+                  studyOverlay={commune?.studyOverlay ?? null}
                   year={heatYear}
-                  onSelectYear={setHeatYear}
+                  onSelectYear={setPickedHeatYear}
                   toggles={heatToggles}
                   onToggle={(key, value) => setHeatToggles((prev) => ({ ...prev, [key]: value }))}
                 />
@@ -220,7 +204,7 @@ export function MapContainer({
 
           {mode === "heat" && heatData && (
             <div className="self-stretch flex justify-end pointer-events-none">
-              <HeatStoryPanel data={heatData} communeName={area.name} tubeDataset={tubeDataset} map={map} />
+              <HeatStoryPanel data={heatData} communeName={area.name} tubeDataset={tubeDataset} onFlyTo={flyTo} />
             </div>
           )}
         </div>

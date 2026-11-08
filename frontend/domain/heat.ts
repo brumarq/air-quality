@@ -146,3 +146,15 @@ export function buildHeatStory(data: HeatMapData): HeatStoryViewModel {
     study: data.studyComparison,
   }
 }
+
+/** A commune's own heat study, shown as an optional raster overlay from a public WMS. */
+export interface StudyOverlay {
+  /** Toggle label and hint in the heat card. */
+  label: string
+  hint: string
+  /** Credit line shown under the toggles. */
+  attribution: string
+  /** A WMS 1.3.0 GetMap endpoint that serves EPSG:3857 PNG tiles with CORS. */
+  wmsUrl: string
+  wmsLayer: string
+}
