@@ -46,6 +46,17 @@ jobs:
           npm ci
           npm run check
           npm run build
+      - name: Playwright smoke tests
+        working-directory: frontend
+        env:
+          NEXT_PUBLIC_MAPBOX_TOKEN: ${{ secrets.MAPBOX_TOKEN }}
+        run: |
+          if [ -z "$NEXT_PUBLIC_MAPBOX_TOKEN" ]; then
+            echo "::warning::MAPBOX_TOKEN is not available (fork PR?), skipping the Playwright smoke tests"
+            exit 0
+          fi
+          npx playwright install --with-deps chromium
+          npm run e2e
 
   ci-collector:
     runs-on: ubuntu-latest

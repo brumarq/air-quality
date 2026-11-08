@@ -23,7 +23,7 @@ const restrict = (files, patterns) => ({
 })
 
 const eslintConfig = [
-  { ignores: [".next/**", "node_modules/**", "public/**", "next-env.d.ts"] },
+  { ignores: [".next/**", ".next-e2e/**", "test-results/**", "playwright-report/**", "node_modules/**", "public/**", "next-env.d.ts"] },
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
     rules: {
