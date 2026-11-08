@@ -6,7 +6,7 @@ import type { AirQualityStation, StationHistory } from "@/domain/air-quality"
 export const FIXED_NOW = new Date("2026-11-08T12:00:00Z")
 
 export const ESCH_ALZETTE: AirQualityStation = {
-  id: "9650",
+  id: 9650,
   name: "Esch/Alzette",
   lat: 49.505,
   lng: 5.977,
@@ -17,7 +17,7 @@ export const ESCH_ALZETTE: AirQualityStation = {
   ],
 }
 
-export const ESCH_GARE: AirQualityStation = { id: "2163038", name: "Esch Gare", lat: 49.497, lng: 5.983, sensors: [] }
+export const ESCH_GARE: AirQualityStation = { id: 2163038, name: "Esch Gare", lat: 49.497, lng: 5.983, sensors: [] }
 
 /** NO2 history for both Esch stations over the `days` before FIXED_NOW, via the real API client. */
 export async function eschNo2History(days: number): Promise<{ history: StationHistory[]; from: Date; to: Date }> {

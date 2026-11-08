@@ -4,11 +4,11 @@ import { Line, LineChart, ReferenceDot, ReferenceLine, ResponsiveContainer, Tool
 import type { PollutantLimit } from "@/domain/limits"
 import type { TimeRangeOption } from "@/domain/time-ranges"
 import type { StationHistory } from "@/domain/air-quality"
-import { bucketTrendData } from "@/domain/chart-bucketing"
-import { bucketStart } from "@/domain/time"
-import { formatDataSince } from "./format-time"
-import { STATION_COLORS, LIMIT_TODAY_COLOR, LIMIT_2030_COLOR } from "@/domain/limits"
+import { windowEndingAt } from "@/domain/time"
+import { tokens } from "@/theme/tokens"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { formatDataSince } from "./format-time"
+import { buildTrendChartModel, type TrendChartModel } from "./trend-chart-model"
 
 interface PollutantTrendChartProps {
   history: StationHistory[] | null
@@ -16,20 +16,54 @@ interface PollutantTrendChartProps {
   range: TimeRangeOption
 }
 
+function ChartMessage({ children }: { children: React.ReactNode }) {
+  return <div className="min-h-48 flex items-center justify-center text-sm text-muted-foreground">{children}</div>
+}
+
+function TrendChart({ model, limit }: { model: TrendChartModel; limit: PollutantLimit }) {
+  return (
+    <ResponsiveContainer width="100%" height={190}>
+      <LineChart data={model.rows} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
+        <XAxis dataKey="t" tickFormatter={model.formatTick} fontSize={11} stroke={tokens.chart.axis} minTickGap={24} />
+        <YAxis fontSize={11} stroke={tokens.chart.axis} width={32} />
+        <Tooltip
+          labelFormatter={(t: number) => model.formatTick(t)}
+          formatter={(value: number, name: string) => [`${value.toFixed(1)} ${limit.unit}`, name]}
+          allowEscapeViewBox={{ x: false, y: false }}
+          position={{ y: 0 }}
+        />
+        {model.lines.map((line) => (
+          <Line
+            key={line.stationId}
+            dataKey={line.dataKey}
+            name={line.name}
+            stroke={line.color}
+            strokeWidth={1.75}
+            dot={false}
+            connectNulls={false}
+          />
+        ))}
+        {model.liveDots.map((dot) => (
+          <ReferenceDot
+            key={dot.stationId}
+            x={dot.t}
+            y={dot.value}
+            r={5}
+            fill={dot.color}
+            stroke={tokens.chart.liveDotStroke}
+            strokeWidth={2}
+            isFront
+          />
+        ))}
+        <ReferenceLine y={limit.limitToday} stroke={tokens.limit.today} strokeDasharray="4 3" />
+        <ReferenceLine y={limit.limit2030} stroke={tokens.limit.target2030} strokeDasharray="4 3" />
+      </LineChart>
+    </ResponsiveContainer>
+  )
+}
+
 export function PollutantTrendChart({ history, limit, range }: PollutantTrendChartProps) {
-  const to = new Date()
-  const from = new Date(to.getTime() - range.days * 24 * 60 * 60 * 1000)
-
-  const { rows, formatTick } = history
-    ? bucketTrendData(history, range.key, from, to)
-    : { rows: null, formatTick: (t: string) => t }
-
-  const earliestAt = history
-    ? history
-        .flatMap(({ points }) => points.map((p) => p.at))
-        .sort((a, b) => a.getTime() - b.getTime())
-        .at(0) ?? null
-    : null
+  const model = history ? buildTrendChartModel(history, range, windowEndingAt(new Date(), range.days)) : null
 
   return (
     <Card className="pointer-events-auto w-full shadow-lg">
@@ -48,83 +82,33 @@ export function PollutantTrendChart({ history, limit, range }: PollutantTrendCha
             )}
           </div>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-ink-strong">
-            {history?.map(({ station }, i) => (
-              <span key={station.id} className="flex items-center gap-2">
-                <span className="w-4 h-1 rounded-sm" style={{ background: STATION_COLORS[i % STATION_COLORS.length] }} />
-                {station.name}
+            {model?.lines.map((line) => (
+              <span key={line.stationId} className="flex items-center gap-2">
+                <span className="w-4 h-1 rounded-sm" style={{ background: line.color }} />
+                {line.name}
               </span>
             ))}
             <span className="flex items-center gap-2">
-              <span className="w-4 border-t border-dashed" style={{ borderColor: LIMIT_2030_COLOR }} />
+              <span className="w-4 border-t border-dashed" style={{ borderColor: tokens.limit.target2030 }} />
               2030 limit
             </span>
             <span className="flex items-center gap-2">
-              <span className="w-4 border-t border-dashed" style={{ borderColor: LIMIT_TODAY_COLOR }} />
+              <span className="w-4 border-t border-dashed" style={{ borderColor: tokens.limit.today }} />
               Today&apos;s limit
             </span>
           </div>
         </div>
       </CardHeader>
       <CardContent>
-        {rows === null ? (
-          <div className="min-h-48 flex items-center justify-center text-sm text-muted-foreground">Loading...</div>
-        ) : earliestAt === null ? (
-          <div className="min-h-48 flex items-center justify-center text-sm text-muted-foreground">
-            No history for this pollutant yet.
-          </div>
+        {model === null ? (
+          <ChartMessage>Loading...</ChartMessage>
+        ) : model.earliestAt === null ? (
+          <ChartMessage>No history for this pollutant yet.</ChartMessage>
         ) : (
           <>
-            <ResponsiveContainer width="100%" height={190}>
-              <LineChart data={rows} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
-                <XAxis
-                  dataKey="timestamp"
-                  tickFormatter={formatTick}
-                  fontSize={11}
-                  stroke="#737373"
-                  minTickGap={24}
-                />
-                <YAxis fontSize={11} stroke="#737373" width={32} />
-                <Tooltip
-                  labelFormatter={(value: string) => formatTick(value)}
-                  formatter={(value: number, name: string) => [`${value.toFixed(1)} ${limit.unit}`, name]}
-                  allowEscapeViewBox={{ x: false, y: false }}
-                  position={{ y: 0 }}
-                />
-                {history!.map(({ station }, i) => (
-                  <Line
-                    key={station.id}
-                    dataKey={station.name}
-                    name={station.name}
-                    stroke={STATION_COLORS[i % STATION_COLORS.length]}
-                    strokeWidth={1.75}
-                    dot={false}
-                    connectNulls={false}
-                  />
-                ))}
-                {range.live &&
-                  history!.map(({ station, points }, i) => {
-                    const last = points[points.length - 1]
-                    if (!last) return null
-                    return (
-                      <ReferenceDot
-                        key={station.id}
-                        x={bucketStart("hour", last.at).toISOString()}
-                        y={last.value}
-                        r={5}
-                        fill={STATION_COLORS[i % STATION_COLORS.length]}
-                        stroke="#FFFFFF"
-                        strokeWidth={2}
-                        isFront
-                      />
-                    )
-                  })}
-                <ReferenceLine y={limit.limitToday} stroke={LIMIT_TODAY_COLOR} strokeDasharray="4 3" />
-                <ReferenceLine y={limit.limit2030} stroke={LIMIT_2030_COLOR} strokeDasharray="4 3" />
-              </LineChart>
-            </ResponsiveContainer>
+            <TrendChart model={model} limit={limit} />
             <p className="text-xs text-muted-foreground pt-2 border-t mt-2">
-              Hover for exact values. Shaded: a station has no data.
-              {` Data since ${formatDataSince(earliestAt)}.`}
+              Hover for exact values. Shaded: a station has no data. Data since {formatDataSince(model.earliestAt)}.
             </p>
           </>
         )}

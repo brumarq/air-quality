@@ -82,7 +82,7 @@ export async function getAirQualityStations(): Promise<AirQualityStation[]> {
   const locations = await AirQualityApi.getLocations()
   return Promise.all(
     locations.map(async (location) => ({
-      id: location.id.toString(),
+      id: location.id,
       name: location.name,
       lat: location.latitude,
       lng: location.longitude,

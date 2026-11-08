@@ -5,7 +5,7 @@ import { POLLUTANT_LIMITS } from "@/domain/limits"
 import type { AirQualityStation, Reading } from "@/domain/air-quality"
 import { StationLimitBar } from "./station-limit-bar"
 
-const station: AirQualityStation = { id: "1", name: "Esch/Alzette", lat: 0, lng: 0 }
+const station: AirQualityStation = { id: 1, name: "Esch/Alzette", lat: 0, lng: 0 }
 const no2 = POLLUTANT_LIMITS.no2
 const utc = (iso: string) => new Date(Date.parse(iso))
 

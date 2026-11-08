@@ -25,7 +25,7 @@ export interface Reading {
 }
 
 export interface AirQualityStation {
-  id: string
+  id: number
   name: string
   lat: number
   lng: number

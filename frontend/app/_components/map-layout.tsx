@@ -25,7 +25,7 @@ export function MapLayout({ communeConfig }: MapLayoutProps) {
     async function fetchStations() {
       try {
         const data = await getAirQualityStations()
-        setStations(data.filter((aqs) => communeConfig.stationIds.includes(Number(aqs.id))))
+        setStations(data.filter((aqs) => communeConfig.stationIds.includes(aqs.id)))
       } catch (error) {
         console.error('Failed to fetch stations:', error)
       } finally {
