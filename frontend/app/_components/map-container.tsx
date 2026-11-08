@@ -15,7 +15,7 @@ import { NO2_LIMITS, POLLUTANT_LIMITS, type PollutantParameter } from "@/domain/
 import { TIME_RANGES, type RangeKey } from "@/domain/time-ranges"
 import { fetchNo2TubeDataset } from "@/api/no2-tubes"
 import { useAsync } from "@/lib/use-async"
-import type { CommuneConfig } from "@/domain/communes"
+import type { Area } from "@/domain/area"
 
 interface MapContainerProps {
   sidebarCollapsed: boolean
@@ -23,19 +23,18 @@ interface MapContainerProps {
   map: mapboxgl.Map | null
   mapStatus: MapStatus
   stations: AirQualityStation[]
-  communeConfig: CommuneConfig
+  area: Area
 }
 
-// One island layout for every area (Luxembourg-wide or a single commune) - see
-// MapLayout for why communeConfig is never optional here.
 export function MapContainer({
   sidebarCollapsed,
   mapContainer,
   map,
   mapStatus,
   stations,
-  communeConfig
+  area
 }: MapContainerProps) {
+  const commune = area.kind === "commune" ? area : null
   const mapLoaded = map !== null
   // Use the resize hook to handle map resize when sidebar state changes
   useMapResize(map, sidebarCollapsed)
@@ -53,9 +52,8 @@ export function MapContainer({
 
   // NO2 tubes: only exist for communes with a Pacte Climat dataset (Esch today), only
   // shown in air mode. See ESCH-HEAT-PROFILE-PLAN.md Step 2.5.
-  const tubeLoad = useAsync(communeConfig.slug ? `no2-tubes|${communeConfig.slug}` : null, (signal) =>
-    fetchNo2TubeDataset(communeConfig.slug, signal),
-  )
+  const tubeSlug = commune?.datasets.no2Tubes ? commune.slug : null
+  const tubeLoad = useAsync(tubeSlug && `no2-tubes|${tubeSlug}`, (signal) => fetchNo2TubeDataset(tubeSlug ?? "", signal))
   const tubeDataset = tubeLoad.status === "ready" && tubeLoad.data.status === "ok" ? tubeLoad.data.data : null
   const tubeLoadFailed = tubeLoad.status === "error" || (tubeLoad.status === "ready" && tubeLoad.data.status === "error")
   const { selectedTubeId, setSelectedTubeId } = useNo2TubeMarkers({
@@ -86,7 +84,7 @@ export function MapContainer({
   } = useHeatMapLayers({
     map,
     mapLoaded,
-    communeSlug: communeConfig.slug,
+    communeSlug: commune?.datasets.heat ? commune.slug : null,
     visible: mode === "heat",
     year: heatYear,
     toggles: heatToggles,
@@ -147,7 +145,7 @@ export function MapContainer({
       <div className="absolute inset-4 flex gap-4 pointer-events-none">
         <div className="flex-none w-96 flex flex-col gap-4 pointer-events-none">
           <CommuneHeaderCard
-            communeConfig={communeConfig}
+            area={area}
             mode={mode}
             onSelectMode={setMode}
             selectedRangeKey={selectedRangeKey}
@@ -161,7 +159,7 @@ export function MapContainer({
                 range={selectedRange}
                 onSelectParameter={setSelectedParameter}
               />
-              {communeConfig.slug && tubeLoad.status === "loading" && (
+              {tubeSlug && tubeLoad.status === "loading" && (
                 <NO2TubesMessage role="status">Loading NO₂ tube data...</NO2TubesMessage>
               )}
               {tubeLoadFailed && <NO2TubesMessage role="alert">Couldn&apos;t load NO₂ tube data.</NO2TubesMessage>}
@@ -203,7 +201,12 @@ export function MapContainer({
         <div className="flex-1 min-w-0 flex flex-col justify-between items-end gap-4 pointer-events-none">
           <div className="flex flex-col items-end gap-4 pointer-events-none">
             <ReportCard />
-            <CustomMapControls map={map} communeConfig={communeConfig} />
+            <CustomMapControls
+              onZoomIn={() => map?.zoomIn()}
+              onZoomOut={() => map?.zoomOut()}
+              onRecenter={() => map?.flyTo({ center: [area.center[0], area.center[1]], zoom: area.zoom })}
+              recenterLabel={area.name}
+            />
           </div>
 
           {mode === "air" && (
@@ -214,7 +217,7 @@ export function MapContainer({
 
           {mode === "heat" && heatData && (
             <div className="self-stretch flex justify-end pointer-events-none">
-              <HeatStoryPanel data={heatData} communeName={communeConfig.name} tubeDataset={tubeDataset} map={map} />
+              <HeatStoryPanel data={heatData} communeName={area.name} tubeDataset={tubeDataset} map={map} />
             </div>
           )}
         </div>

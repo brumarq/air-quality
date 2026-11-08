@@ -7,16 +7,15 @@ import { useLuxembourgBoundary } from "@/map/luxembourg-boundary"
 import { useStationLayers } from "@/features/air-quality"
 import { getAirQualityStations } from "@/api/air-quality"
 import type { AirQualityStation } from "@/domain/air-quality"
-import { CommuneConfig } from "@/domain/communes"
+import type { Area } from "@/domain/area"
 
 interface MapLayoutProps {
-  communeConfig: CommuneConfig
+  area: Area
 }
 
-// One layout for both the Luxembourg-wide view and a single commune: full-bleed map with
-// floating "islands" on top, no sidebar. The only difference between them is which area's
-// config (station IDs, center, zoom) gets passed in - see domain/communes.ts.
-export function MapLayout({ communeConfig }: MapLayoutProps) {
+// One layout for the national overview and every commune: a full-bleed map with floating
+// cards on top. What differs is the area passed in (stations, map view, datasets).
+export function MapLayout({ area }: MapLayoutProps) {
   const [sidebarCollapsed] = useState(false)
   const [stations, setStations] = useState<AirQualityStation[]>([])
   const [stationsLoaded, setStationsLoaded] = useState(false)
@@ -25,7 +24,7 @@ export function MapLayout({ communeConfig }: MapLayoutProps) {
     async function fetchStations() {
       try {
         const data = await getAirQualityStations()
-        setStations(data.filter((aqs) => communeConfig.stationIds.includes(aqs.id)))
+        setStations(data.filter((aqs) => area.stationIds.includes(aqs.id)))
       } catch (error) {
         console.error('Failed to fetch stations:', error)
       } finally {
@@ -33,11 +32,11 @@ export function MapLayout({ communeConfig }: MapLayoutProps) {
       }
     }
     fetchStations()
-  }, [communeConfig])
+  }, [area])
 
   const { containerRef, map, status: mapStatus } = useMapboxInstance({
-    center: communeConfig.center,
-    zoom: communeConfig.zoom,
+    center: [area.center[0], area.center[1]],
+    zoom: area.zoom,
   })
   const mapLoaded = map !== null
   useLuxembourgBoundary(map, mapLoaded)
@@ -52,7 +51,7 @@ export function MapLayout({ communeConfig }: MapLayoutProps) {
           map={map}
           mapStatus={mapStatus}
           stations={stations}
-          communeConfig={communeConfig}
+          area={area}
         />
       </div>
     )

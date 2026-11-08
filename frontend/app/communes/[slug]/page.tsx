@@ -1,6 +1,6 @@
-import { getCommuneBySlug } from "@/domain/communes"
-import { CommuneMap } from "@/app/_components/commune-map"
 import { notFound } from "next/navigation"
+import { findCommune } from "@/content/communes"
+import { CommuneMap } from "@/app/_components/commune-map"
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -8,12 +8,7 @@ interface PageProps {
 
 export default async function CommunePage({ params }: PageProps) {
   const { slug } = await params
-
-  const communeConfig = getCommuneBySlug(slug)
-
-  if (!communeConfig) {
-    notFound()
-  }
-
-  return <CommuneMap communeConfig={communeConfig} />
+  const commune = findCommune(slug)
+  if (!commune) notFound()
+  return <CommuneMap area={commune} />
 }

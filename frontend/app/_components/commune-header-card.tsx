@@ -2,8 +2,9 @@
 
 import Link from "next/link"
 import { ChevronDown, Map, MapPin } from "lucide-react"
-import type { CommuneConfig } from "@/domain/communes"
-import { communes } from "@/domain/communes"
+import type { Area } from "@/domain/area"
+import { LUXEMBOURG } from "@/content/areas/luxembourg"
+import { COMMUNES } from "@/content/communes"
 import { RANGE_KEYS, TIME_RANGES, isRangeKey, type RangeKey } from "@/domain/time-ranges"
 import { Badge } from "@/components/ui/badge"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
@@ -17,8 +18,10 @@ import {
 
 export type AreaMode = "air" | "heat"
 
+const isAreaMode = (value: string): value is AreaMode => value === "air" || value === "heat"
+
 interface CommuneHeaderCardProps {
-  communeConfig: CommuneConfig
+  area: Area
   mode: AreaMode
   onSelectMode: (mode: AreaMode) => void
   selectedRangeKey: RangeKey
@@ -26,7 +29,7 @@ interface CommuneHeaderCardProps {
 }
 
 export function CommuneHeaderCard({
-  communeConfig,
+  area,
   mode,
   onSelectMode,
   selectedRangeKey,
@@ -44,7 +47,7 @@ export function CommuneHeaderCard({
             <span className="text-ink-faint" aria-hidden="true">
               /
             </span>
-            <span className="text-muted-foreground">{communeConfig.slug ? "Commune profile" : "National overview"}</span>
+            <span className="text-muted-foreground">{area.kind === "commune" ? "Commune profile" : "National overview"}</span>
           </span>
           <Badge variant="outline">Draft</Badge>
         </div>
@@ -53,20 +56,20 @@ export function CommuneHeaderCard({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button type="button" className="flex items-center gap-2 text-xl font-semibold leading-none">
-                {communeConfig.name}
+                {area.name}
                 <ChevronDown className="h-4 w-4 text-muted-foreground" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="min-w-64">
-              <DropdownMenuItem asChild disabled={!communeConfig.slug}>
+              <DropdownMenuItem asChild disabled={area.kind === "country"}>
                 <Link href="/" className="flex items-center gap-3">
                   <Map className="h-4 w-4" />
-                  <span className="flex-1">Luxembourg</span>
-                  <span className="text-xs text-muted-foreground">All 9 stations</span>
+                  <span className="flex-1">{LUXEMBOURG.name}</span>
+                  <span className="text-xs text-muted-foreground">All {LUXEMBOURG.stationIds.length} stations</span>
                 </Link>
               </DropdownMenuItem>
-              {communes.map((commune) => (
-                <DropdownMenuItem key={commune.slug} asChild disabled={commune.slug === communeConfig.slug}>
+              {COMMUNES.map((commune) => (
+                <DropdownMenuItem key={commune.slug} asChild disabled={area.kind === "commune" && commune.slug === area.slug}>
                   <Link href={`/communes/${commune.slug}`} className="flex items-center gap-3 font-medium">
                     <MapPin className="h-4 w-4" />
                     <span className="flex-1">{commune.name}</span>
@@ -76,14 +79,14 @@ export function CommuneHeaderCard({
             </DropdownMenuContent>
           </DropdownMenu>
           <p className="text-sm text-muted-foreground">
-            {communeConfig.stationIds.length} reference stations · air quality against EU limits, and summer heat
+            {area.stationIds.length} reference stations · air quality against EU limits, and summer heat
           </p>
         </div>
 
         <ToggleGroup
           type="single"
           value={mode}
-          onValueChange={(value) => value && onSelectMode(value as AreaMode)}
+          onValueChange={(value) => isAreaMode(value) && onSelectMode(value)}
           className="bg-muted rounded-lg p-1 gap-1"
         >
           <ToggleGroupItem value="air" className="flex-1 h-8 text-sm data-[state=on]:bg-background data-[state=on]:shadow-sm">

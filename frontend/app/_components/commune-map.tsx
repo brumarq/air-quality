@@ -1,7 +1,7 @@
 "use client"
 
 import dynamic from "next/dynamic"
-import type { CommuneConfig } from "@/domain/communes"
+import type { Area } from "@/domain/area"
 
 const MapLayout = dynamic(() => import("./map-layout").then((m) => m.MapLayout), {
   ssr: false,
@@ -12,6 +12,6 @@ const MapLayout = dynamic(() => import("./map-layout").then((m) => m.MapLayout),
   ),
 })
 
-export function CommuneMap({ communeConfig }: { communeConfig: CommuneConfig }) {
-  return <MapLayout communeConfig={communeConfig} />
+export function CommuneMap({ area }: { area: Area }) {
+  return <MapLayout area={area} />
 }

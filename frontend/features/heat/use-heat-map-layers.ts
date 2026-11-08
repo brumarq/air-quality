@@ -1,7 +1,9 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { useAsync } from "@/lib/use-async"
+import { useAsync, type AsyncState } from "@/lib/use-async"
+import type { LoadResult } from "@/api/static-data"
+import type { HeatMapData } from "@/domain/heat"
 import type mapboxgl from "mapbox-gl"
 import { fetchHeatMapData } from "@/api/heat"
 import {
@@ -32,7 +34,8 @@ export interface HeatLayerToggles {
 interface UseHeatMapLayersProps {
   map: mapboxgl.Map | null
   mapLoaded: boolean
-  communeSlug: string
+  /** null when the area has no heat data; the load is skipped and treated as not prepared. */
+  communeSlug: string | null
   visible: boolean
   year: number
   toggles: HeatLayerToggles
@@ -42,8 +45,13 @@ interface UseHeatMapLayersProps {
  * Loads the static heat-map data once per commune, then adds/removes each layer
  * independently as its toggle flips - see ESCH-HEAT-PROFILE-PLAN.md Step 3, Week 2.
  */
+const NOT_PREPARED: AsyncState<LoadResult<HeatMapData>> = { status: "ready", data: { status: "not-prepared" } }
+
 export function useHeatMapLayers({ map, mapLoaded, communeSlug, visible, year, toggles }: UseHeatMapLayersProps) {
-  const load = useAsync(visible ? `heat|${communeSlug}` : null, (signal) => fetchHeatMapData(communeSlug, signal))
+  const fetched = useAsync(visible && communeSlug ? `heat|${communeSlug}` : null, (signal) =>
+    fetchHeatMapData(communeSlug ?? "", signal),
+  )
+  const load = communeSlug === null ? NOT_PREPARED : fetched
   const data = load.status === "ready" && load.data.status === "ok" ? load.data.data : null
   const [selectedCellId, setSelectedCellId] = useState<string | null>(null)
   const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null)

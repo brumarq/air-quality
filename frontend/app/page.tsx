@@ -1,6 +1,6 @@
-import { LUXEMBOURG_AREA } from "@/domain/communes"
+import { LUXEMBOURG } from "@/content/areas/luxembourg"
 import { CommuneMap } from "@/app/_components/commune-map"
 
 export default function Home() {
-  return <CommuneMap communeConfig={LUXEMBOURG_AREA} />
+  return <CommuneMap area={LUXEMBOURG} />
 }

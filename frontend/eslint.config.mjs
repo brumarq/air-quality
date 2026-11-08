@@ -19,6 +19,8 @@ const PARENT_RELATIVE_IMPORT = {
   message: "Use an \"@/...\" import instead of \"../\".",
 }
 const ban = (groups, message) => ({ group: groups, message })
+// Commune content reaches features as props; only app/ reads content/ directly.
+const NO_CONTENT = ban(["@/content/*", "@/content/**"], "Only app/ imports content/. Pass content to features as props.")
 
 // no-restricted-imports doesn't look at import(), so a dynamic import would get past every
 // rule above. Only app/ may use one (next/dynamic). ESLint replaces rather than merges a
@@ -80,12 +82,15 @@ const eslintConfig = [
   restrict(["app/**"], []),
   restrict(["features/**"], [
     ban(["@/features/*", "@/app/*", "@/app/**"], "Features must not import other features or app/. Inside a feature, use relative imports."),
+    NO_CONTENT,
   ]),
   restrict(["map/**"], [
     ban(["@/features/*", "@/app/**", "@/api/*"], "map/ is generic Mapbox code: it may use domain/ but not features, app or api."),
+    NO_CONTENT,
   ]),
   restrict(["api/**"], [
     ban(["@/features/*", "@/app/**", "@/map/*", "@/components/*", "@/components/**", "react", "mapbox-gl"], "api/ loads data: it may only use domain/ and data/."),
+    NO_CONTENT,
   ]),
   {
     files: ["domain/**"],
@@ -96,11 +101,39 @@ const eslintConfig = [
     },
   },
   restrict(["domain/**"], [
-    ban(["@/app/**", "@/features/*", "@/map/*", "@/api/*", "@/components/**", "@/lib/*", "@/data/**", "react", "react-dom", "mapbox-gl", "next", "next/*"], "domain/ is pure TypeScript: it may only import other domain/ files."),
+    ban(["@/app/**", "@/features/*", "@/map/*", "@/api/*", "@/components/**", "@/lib/*", "@/data/**", "@/theme/*", "react", "react-dom", "mapbox-gl", "next", "next/*"], "domain/ is pure TypeScript: it may only import other domain/ files."),
+    NO_CONTENT,
   ]),
   restrict(["components/ui/**"], [
     ban(["@/features/*", "@/app/**", "@/domain/*", "@/api/*", "@/map/*"], "components/ui/ holds shadcn primitives only."),
+    NO_CONTENT,
   ]),
+  restrict(["lib/**"], [ban(["@/features/*", "@/app/**"], "lib/ holds generic helpers."), NO_CONTENT]),
+  {
+    // content/ is per-commune config and copy: plain data typed by domain/.
+    files: ["content/**"],
+    rules: {
+      "no-restricted-imports": "off",
+      "@typescript-eslint/no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            PARENT_RELATIVE_IMPORT,
+            { group: ["@/domain/*", "@/domain/**"], allowTypeImports: true, message: "content/ may import domain/ types only (import type)." },
+            {
+              group: ["@/app/**", "@/features/*", "@/features/**", "@/map/*", "@/api/*", "@/components/**", "@/lib/*", "@/theme/*", "@/data/**", "react", "react-dom", "mapbox-gl", "next", "next/*"],
+              message: "content/ is plain data: it may import domain/ types only.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // theme/ is the single source of colour values and depends on nothing.
+    files: ["theme/**"],
+    rules: { "no-restricted-syntax": ["error", NO_DYNAMIC_IMPORT, { selector: "ImportDeclaration", message: "theme/ imports nothing." }] },
+  },
 ]
 
 export default eslintConfig
