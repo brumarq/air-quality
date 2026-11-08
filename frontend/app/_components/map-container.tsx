@@ -57,8 +57,8 @@ export function MapContainer({
   const tubeLoadFailed = tubeLoad.status === "error" || (tubeLoad.status === "ready" && tubeLoad.data.status === "error")
   const { selectedTubeId, setSelectedTubeId } = useNo2TubeMarkers({
     map,
-    mapLoaded,
     dataset: tubeDataset,
+    limits: NO2_LIMITS,
     visible: mode === "air",
   })
 
@@ -146,7 +146,11 @@ export function MapContainer({
           <CommuneHeaderCard
             area={area}
             mode={mode}
-            onSelectMode={setMode}
+            onSelectMode={(next) => {
+              // Leaving air mode closes the tube detail, as it did when the pins were removed.
+              setSelectedTubeId(null)
+              setMode(next)
+            }}
             selectedRangeKey={selectedRangeKey}
             onSelectRange={setSelectedRangeKey}
           />
