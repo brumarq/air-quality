@@ -20,7 +20,7 @@ import {
   HEAT_GRID_FILL_LAYER_ID,
   HEAT_GRID_SOURCE_ID,
   HEAT_BUILDINGS_LAYER_ID,
-} from "@/lib/utils/heat-map-utils"
+} from "./heat-layers"
 
 export interface HeatLayerToggles {
   grid: boolean

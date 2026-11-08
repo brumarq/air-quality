@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import type mapboxgl from "mapbox-gl"
 import type { NO2TubeDataset } from "@/domain/no2-tubes"
-import { addNo2TubeLayers, removeNo2TubeLayers, NO2_TUBE_LAYER_ID } from "@/lib/utils/no2-tube-map-utils"
+import { addNo2TubeLayers, removeNo2TubeLayers, NO2_TUBE_LAYER_ID } from "./no2-tube-layers"
 
 interface UseNo2TubeMarkersProps {
   map: mapboxgl.Map | null
