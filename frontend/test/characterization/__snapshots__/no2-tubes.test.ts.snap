@@ -1,0 +1,42 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`NO2 tubes on the real Esch data (characterization) > computes the reduction each tube needs 1`] = `
+[
+  {
+    "lastYearChange": 0,
+    "latestValue": 27,
+    "latestYear": 2025,
+    "name": "48, boulevard Kennedy",
+    "neededPerYear": 1.4,
+    "pctVsTarget": 35,
+    "tubeId": "kennedy",
+  },
+  {
+    "lastYearChange": 1,
+    "latestValue": 22,
+    "latestYear": 2025,
+    "name": "205, rue de Luxembourg",
+    "neededPerYear": 0.4,
+    "pctVsTarget": 10,
+    "tubeId": "rue-de-luxembourg",
+  },
+  {
+    "lastYearChange": -1,
+    "latestValue": 23,
+    "latestYear": 2025,
+    "name": "18, Neudorf",
+    "neededPerYear": 0.6,
+    "pctVsTarget": 15,
+    "tubeId": "neudorf",
+  },
+  {
+    "lastYearChange": 2,
+    "latestValue": 16,
+    "latestYear": 2025,
+    "name": "69, rue Arthur Useldinger",
+    "neededPerYear": null,
+    "pctVsTarget": -20,
+    "tubeId": "useldinger",
+  },
+]
+`;

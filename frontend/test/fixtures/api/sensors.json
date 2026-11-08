@@ -1,0 +1,326 @@
+{
+ "3063270": [
+  {
+   "id": 10614439,
+   "sensorId": 10614439,
+   "parameter": "no2",
+   "unit": "µg/m³",
+   "lastValue": 3.8,
+   "lastUpdated": "2026-10-27T08:00:00",
+   "locationId": null
+  },
+  {
+   "id": 10614438,
+   "sensorId": 10614438,
+   "parameter": "o3",
+   "unit": "µg/m³",
+   "lastValue": 32.0,
+   "lastUpdated": "2026-10-27T08:00:00",
+   "locationId": null
+  }
+ ],
+ "9648": [
+  {
+   "id": 4274812,
+   "sensorId": 4274812,
+   "parameter": "no",
+   "unit": "µg/m³",
+   "lastValue": 1.3,
+   "lastUpdated": "2024-03-11T12:00:00",
+   "locationId": null
+  },
+  {
+   "id": 29832,
+   "sensorId": 29832,
+   "parameter": "no2",
+   "unit": "µg/m³",
+   "lastValue": 5.0,
+   "lastUpdated": "2026-10-27T08:00:00",
+   "locationId": null
+  },
+  {
+   "id": 29831,
+   "sensorId": 29831,
+   "parameter": "o3",
+   "unit": "µg/m³",
+   "lastValue": 28.5,
+   "lastUpdated": "2026-10-27T08:00:00",
+   "locationId": null
+  }
+ ],
+ "9645": [
+  {
+   "id": 4274442,
+   "sensorId": 4274442,
+   "parameter": "no",
+   "unit": "µg/m³",
+   "lastValue": 1.6,
+   "lastUpdated": "2024-03-11T12:00:00",
+   "locationId": null
+  },
+  {
+   "id": 29829,
+   "sensorId": 29829,
+   "parameter": "no2",
+   "unit": "µg/m³",
+   "lastValue": 4.1,
+   "lastUpdated": "2026-10-27T08:00:00",
+   "locationId": null
+  },
+  {
+   "id": 29816,
+   "sensorId": 29816,
+   "parameter": "o3",
+   "unit": "µg/m³",
+   "lastValue": 30.5,
+   "lastUpdated": "2026-10-27T08:00:00",
+   "locationId": null
+  },
+  {
+   "id": 29815,
+   "sensorId": 29815,
+   "parameter": "pm10",
+   "unit": "µg/m³",
+   "lastValue": 9.6,
+   "lastUpdated": "2026-10-27T08:00:00",
+   "locationId": null
+  },
+  {
+   "id": 29813,
+   "sensorId": 29813,
+   "parameter": "pm25",
+   "unit": "µg/m³",
+   "lastValue": 6.5,
+   "lastUpdated": "2026-10-27T08:00:00",
+   "locationId": null
+  },
+  {
+   "id": 29812,
+   "sensorId": 29812,
+   "parameter": "so2",
+   "unit": "µg/m³",
+   "lastValue": 7.9,
+   "lastUpdated": "2022-02-07T08:00:00",
+   "locationId": null
+  }
+ ],
+ "9642": [
+  {
+   "id": 29811,
+   "sensorId": 29811,
+   "parameter": "co",
+   "unit": "µg/m³",
+   "lastValue": 280.0,
+   "lastUpdated": "2022-01-06T05:00:00",
+   "locationId": null
+  },
+  {
+   "id": 4275182,
+   "sensorId": 4275182,
+   "parameter": "no",
+   "unit": "µg/m³",
+   "lastValue": 5.7,
+   "lastUpdated": "2024-03-11T12:00:00",
+   "locationId": null
+  },
+  {
+   "id": 29810,
+   "sensorId": 29810,
+   "parameter": "no2",
+   "unit": "µg/m³",
+   "lastValue": 16.8,
+   "lastUpdated": "2026-10-27T08:00:00",
+   "locationId": null
+  },
+  {
+   "id": 29805,
+   "sensorId": 29805,
+   "parameter": "pm10",
+   "unit": "µg/m³",
+   "lastValue": 16.0,
+   "lastUpdated": "2026-10-27T08:00:00",
+   "locationId": null
+  },
+  {
+   "id": 29795,
+   "sensorId": 29795,
+   "parameter": "pm25",
+   "unit": "µg/m³",
+   "lastValue": 8.0,
+   "lastUpdated": "2026-10-27T08:00:00",
+   "locationId": null
+  }
+ ],
+ "9651": [
+  {
+   "id": 29852,
+   "sensorId": 29852,
+   "parameter": "co",
+   "unit": "µg/m³",
+   "lastValue": 220.0,
+   "lastUpdated": "2026-10-27T08:00:00",
+   "locationId": null
+  },
+  {
+   "id": 4275257,
+   "sensorId": 4275257,
+   "parameter": "no",
+   "unit": "µg/m³",
+   "lastValue": 4.2,
+   "lastUpdated": "2024-03-11T12:00:00",
+   "locationId": null
+  },
+  {
+   "id": 29851,
+   "sensorId": 29851,
+   "parameter": "no2",
+   "unit": "µg/m³",
+   "lastValue": 15.1,
+   "lastUpdated": "2026-10-27T08:00:00",
+   "locationId": null
+  },
+  {
+   "id": 29850,
+   "sensorId": 29850,
+   "parameter": "o3",
+   "unit": "µg/m³",
+   "lastValue": 20.0,
+   "lastUpdated": "2026-10-27T08:00:00",
+   "locationId": null
+  },
+  {
+   "id": 29849,
+   "sensorId": 29849,
+   "parameter": "pm10",
+   "unit": "µg/m³",
+   "lastValue": 14.3,
+   "lastUpdated": "2026-10-27T08:00:00",
+   "locationId": null
+  },
+  {
+   "id": 29848,
+   "sensorId": 29848,
+   "parameter": "pm25",
+   "unit": "µg/m³",
+   "lastValue": 10.1,
+   "lastUpdated": "2026-10-27T08:00:00",
+   "locationId": null
+  },
+  {
+   "id": 29847,
+   "sensorId": 29847,
+   "parameter": "so2",
+   "unit": "µg/m³",
+   "lastValue": 4.1,
+   "lastUpdated": "2024-12-13T10:00:00",
+   "locationId": null
+  }
+ ],
+ "2163033": [
+  {
+   "id": 7774558,
+   "sensorId": 7774558,
+   "parameter": "no",
+   "unit": "µg/m³",
+   "lastValue": 5.9,
+   "lastUpdated": "2024-03-11T12:00:00",
+   "locationId": null
+  },
+  {
+   "id": 7774291,
+   "sensorId": 7774291,
+   "parameter": "no2",
+   "unit": "µg/m³",
+   "lastValue": 24.3,
+   "lastUpdated": "2026-10-27T08:00:00",
+   "locationId": null
+  }
+ ],
+ "2163037": [
+  {
+   "id": 8613449,
+   "sensorId": 8613449,
+   "parameter": "no2",
+   "unit": "µg/m³",
+   "lastValue": 23.3,
+   "lastUpdated": "2026-10-27T08:00:00",
+   "locationId": null
+  }
+ ],
+ "9650": [
+  {
+   "id": 29846,
+   "sensorId": 29846,
+   "parameter": "co",
+   "unit": "µg/m³",
+   "lastValue": 350.0,
+   "lastUpdated": "2026-11-07T22:00:00",
+   "locationId": null
+  },
+  {
+   "id": 4275166,
+   "sensorId": 4275166,
+   "parameter": "no",
+   "unit": "µg/m³",
+   "lastValue": 2.2,
+   "lastUpdated": "2024-03-11T12:00:00",
+   "locationId": null
+  },
+  {
+   "id": 29845,
+   "sensorId": 29845,
+   "parameter": "no2",
+   "unit": "µg/m³",
+   "lastValue": 20.4,
+   "lastUpdated": "2026-11-07T22:00:00",
+   "locationId": null
+  },
+  {
+   "id": 29842,
+   "sensorId": 29842,
+   "parameter": "o3",
+   "unit": "µg/m³",
+   "lastValue": 6.0,
+   "lastUpdated": "2026-11-07T22:00:00",
+   "locationId": null
+  },
+  {
+   "id": 29841,
+   "sensorId": 29841,
+   "parameter": "pm10",
+   "unit": "µg/m³",
+   "lastValue": 32.5,
+   "lastUpdated": "2026-11-07T22:00:00",
+   "locationId": null
+  },
+  {
+   "id": 29840,
+   "sensorId": 29840,
+   "parameter": "pm25",
+   "unit": "µg/m³",
+   "lastValue": 30.8,
+   "lastUpdated": "2026-11-07T22:00:00",
+   "locationId": null
+  },
+  {
+   "id": 29837,
+   "sensorId": 29837,
+   "parameter": "so2",
+   "unit": "µg/m³",
+   "lastValue": 3.8,
+   "lastUpdated": "2022-02-03T09:00:00",
+   "locationId": null
+  }
+ ],
+ "2163038": [
+  {
+   "id": 8613647,
+   "sensorId": 8613647,
+   "parameter": "no2",
+   "unit": "µg/m³",
+   "lastValue": 33.7,
+   "lastUpdated": "2026-09-21T16:00:00",
+   "locationId": null
+  }
+ ]
+}
