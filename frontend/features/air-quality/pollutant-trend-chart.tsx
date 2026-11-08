@@ -5,6 +5,8 @@ import type { PollutantLimit } from "@/domain/limits"
 import type { TimeRangeOption } from "@/domain/time-ranges"
 import type { StationHistory } from "@/domain/air-quality"
 import { bucketTrendData } from "@/domain/chart-bucketing"
+import { bucketStart } from "@/domain/time"
+import { formatDataSince } from "./format-time"
 import { STATION_COLORS, LIMIT_TODAY_COLOR, LIMIT_2030_COLOR } from "@/domain/limits"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 
@@ -22,10 +24,10 @@ export function PollutantTrendChart({ history, limit, range }: PollutantTrendCha
     ? bucketTrendData(history, range.key, from, to)
     : { rows: null, formatTick: (t: string) => t }
 
-  const earliestTimestamp = history
+  const earliestAt = history
     ? history
-        .flatMap(({ points }) => points.map((p) => p.timestamp))
-        .sort()
+        .flatMap(({ points }) => points.map((p) => p.at))
+        .sort((a, b) => a.getTime() - b.getTime())
         .at(0) ?? null
     : null
 
@@ -66,7 +68,7 @@ export function PollutantTrendChart({ history, limit, range }: PollutantTrendCha
       <CardContent>
         {rows === null ? (
           <div className="min-h-48 flex items-center justify-center text-sm text-muted-foreground">Loading...</div>
-        ) : earliestTimestamp === null ? (
+        ) : earliestAt === null ? (
           <div className="min-h-48 flex items-center justify-center text-sm text-muted-foreground">
             No history for this pollutant yet.
           </div>
@@ -106,7 +108,7 @@ export function PollutantTrendChart({ history, limit, range }: PollutantTrendCha
                     return (
                       <ReferenceDot
                         key={station.id}
-                        x={last.timestamp}
+                        x={bucketStart("hour", last.at).toISOString()}
                         y={last.value}
                         r={5}
                         fill={STATION_COLORS[i % STATION_COLORS.length]}
@@ -122,8 +124,7 @@ export function PollutantTrendChart({ history, limit, range }: PollutantTrendCha
             </ResponsiveContainer>
             <p className="text-xs text-muted-foreground pt-2 border-t mt-2">
               Hover for exact values. Shaded: a station has no data.
-              {earliestTimestamp &&
-                ` Data since ${new Date(earliestTimestamp).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}.`}
+              {` Data since ${formatDataSince(earliestAt)}.`}
             </p>
           </>
         )}

@@ -1,10 +1,11 @@
-import type { AirQualityStation, SensorReadingHistoryPoint } from "@/domain/air-quality"
+import type { AirQualityStation, Reading } from "@/domain/air-quality"
+import { formatReadingTime } from "./format-time"
 import { LIMIT_STATUS_COLOR, LIMIT_TODAY_COLOR, LIMIT_2030_COLOR, getLimitStatus, type PollutantLimit } from "@/domain/limits"
 
 interface StationLimitBarProps {
   station: AirQualityStation
   color: string
-  points: SensorReadingHistoryPoint[]
+  points: Reading[]
   limit: PollutantLimit
   live: boolean
 }
@@ -34,7 +35,7 @@ export function StationLimitBar({ station, color, points, limit, live }: Station
   }
 
   const value = live ? matching[matching.length - 1].value : matching.reduce((sum, p) => sum + p.value, 0) / matching.length
-  const latestTimestamp = matching[matching.length - 1].timestamp
+  const latestAt = matching[matching.length - 1].at
   const pct = Math.min(100, (value / scaleMax) * 100)
   const status = getLimitStatus(value, limit)
 
@@ -61,8 +62,8 @@ export function StationLimitBar({ station, color, points, limit, live }: Station
       </div>
       <span className="text-xs text-muted-foreground">
         {live
-          ? `Latest reading · ${new Date(latestTimestamp).toLocaleString()}`
-          : `Average of ${matching.length} reading${matching.length === 1 ? "" : "s"} · latest ${new Date(latestTimestamp).toLocaleString()}`}
+          ? `Latest reading · ${formatReadingTime(latestAt)}`
+          : `Average of ${matching.length} reading${matching.length === 1 ? "" : "s"} · latest ${formatReadingTime(latestAt)}`}
       </span>
     </div>
   )

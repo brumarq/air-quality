@@ -2,21 +2,21 @@
 
 exports[`StationLimitBar on real Esch NO2 readings (characterization) > day 1`] = `
 [
-  "Esch/Alzette16.4Average of 11 readings · latest 11/7/2026, 10:00:00 PM",
+  "Esch/Alzette16.4Average of 11 readings · latest 11/7/2026, 11:00:00 PM",
   "Esch GareNo dataNo recent reading for this period",
 ]
 `;
 
 exports[`StationLimitBar on real Esch NO2 readings (characterization) > live 1`] = `
 [
-  "Esch/Alzette20.4Latest reading · 11/7/2026, 10:00:00 PM",
+  "Esch/Alzette20.4Latest reading · 11/7/2026, 11:00:00 PM",
   "Esch GareNo dataNo recent reading for this period",
 ]
 `;
 
 exports[`StationLimitBar on real Esch NO2 readings (characterization) > week 1`] = `
 [
-  "Esch/Alzette22.3Average of 53 readings · latest 11/7/2026, 10:00:00 PM",
+  "Esch/Alzette22.3Average of 53 readings · latest 11/7/2026, 11:00:00 PM",
   "Esch GareNo dataNo recent reading for this period",
 ]
 `;

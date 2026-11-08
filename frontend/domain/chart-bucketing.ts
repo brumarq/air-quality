@@ -105,7 +105,7 @@ export function bucketTrendData(
   for (const { station, points } of history) {
     const buckets = new Map<string, { sum: number; count: number }>()
     for (const point of points) {
-      const key = strategy.bucketStart(new Date(point.timestamp)).toISOString()
+      const key = strategy.bucketStart(point.at).toISOString()
       const entry = buckets.get(key) ?? { sum: 0, count: 0 }
       entry.sum += point.value
       entry.count += 1

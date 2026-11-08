@@ -7,7 +7,7 @@ const station: AirQualityStation = { id: "1", name: "S", lat: 0, lng: 0 }
 const HOUR = 60 * 60 * 1000
 
 function hourly(fromIso: string, toIso: string, timestamps: string[] = []) {
-  const points = timestamps.map((timestamp, i) => ({ timestamp, value: i + 1, unit: "µg/m³" }))
+  const points = timestamps.map((timestamp, i) => ({ at: new Date(Date.parse(timestamp)), value: i + 1, unit: "µg/m³" }))
   return bucketTrendData([{ station, points }], "day", new Date(fromIso), new Date(toIso)).rows
 }
 

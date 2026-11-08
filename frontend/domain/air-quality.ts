@@ -13,12 +13,13 @@ export interface Sensor {
   parameter: string
   unit?: string
   lastValue?: number
-  lastUpdated?: string
+  lastUpdated?: Date
   locationId?: number
 }
 
-export interface SensorReadingHistoryPoint {
-  timestamp: string
+/** One measurement. `at` is an absolute instant; api/ converts the backend's zoneless UTC strings. */
+export interface Reading {
+  at: Date
   value: number
   unit: string
 }
@@ -33,5 +34,6 @@ export interface AirQualityStation {
 
 export interface StationHistory {
   station: AirQualityStation
-  points: SensorReadingHistoryPoint[]
+  /** Oldest first. */
+  points: Reading[]
 }

@@ -29,6 +29,8 @@ test("Esch commune page shows readings, then the heat story in heat mode", async
 
   await expect(page.getByText("Esch/Alzette").first()).toBeVisible()
   await expect(page.getByText(/NO₂ tubes · distance to the/)).toBeVisible()
+  // Live mode marks each station's latest reading on the chart.
+  await expect(page.locator(".recharts-reference-dot")).toHaveCount(1)
 
   await page.getByRole("radio", { name: "Summer heat" }).click()
   await expect(page.getByText("Satellite data backs the PRO-SUD heat study")).toBeVisible()
