@@ -2,7 +2,7 @@
 
 import type mapboxgl from "mapbox-gl"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { latestHeatYear, statsForYear, type HeatMapData } from "@/domain/heat"
+import { buildHeatStory, type HeatMapData } from "@/domain/heat"
 import { NO2_LIMITS } from "@/domain/limits"
 import { getReductionNeeded, type No2TubeDataset } from "@/domain/no2-tubes"
 import { HeatHotspotList } from "./heat-hotspot-list"
@@ -15,31 +15,10 @@ interface HeatStoryPanelProps {
 }
 
 export function HeatStoryPanel({ data, communeName, tubeDataset, map }: HeatStoryPanelProps) {
-  const years = data.years
-  const latestYear = latestHeatYear(data)
-  const latestYearStats = latestYear === null ? null : statsForYear(data, latestYear)
-  const study = data.studyComparison
-
-  // Per-building count of how many of the {years.length} summers it landed in the
-  // (non-industrial) hottest 10% - keyed by osm_id, not name, since two unnamed
-  // facilities would otherwise collide under the same "(unnamed)" label.
-  const buildingYearCounts = new Map<string, { name: string | null; count: number }>()
-  for (const yearStats of data.stats) {
-    for (const b of yearStats.sensitiveBuildingsInHottest10pct) {
-      const existing = buildingYearCounts.get(b.osmId)
-      if (existing) existing.count += 1
-      else buildingYearCounts.set(b.osmId, { name: b.name, count: 1 })
-    }
-  }
-  const namedBuildings = [...buildingYearCounts.values()]
-    .flatMap((b) => (b.name === null ? [] : [{ name: b.name, count: b.count }]))
-    .sort((a, b) => b.count - a.count)
-  const totalEverHottest = buildingYearCounts.size
-  const namedShown = namedBuildings.slice(0, 2)
-  // Bug caught by review: this must subtract from totalEverHottest (which includes
-  // unnamed facilities), not namedBuildings.length, or "2 shown + N more" stops adding
-  // up to the badge's own total.
-  const namedRemaining = totalEverHottest - namedShown.length
+  const story = buildHeatStory(data)
+  const { study, years, hottestSpot, sensitiveBuildings } = story
+  const yearRange = years ? `${years.first}–${years.last}` : ""
+  const spot = hottestSpot?.spot ?? null
 
   const kennedyStudyPoint = study?.points.find((p) => p.name.toLowerCase().includes("kennedy"))
   const kennedyReduction = tubeDataset
@@ -47,8 +26,7 @@ export function HeatStoryPanel({ data, communeName, tubeDataset, map }: HeatStor
     : undefined
 
   function flyToHottestSpot() {
-    const lngLat = latestYearStats?.hottestNonIndustrial?.lngLat
-    if (map && lngLat) map.flyTo({ center: [lngLat[0], lngLat[1]], zoom: 16 })
+    if (map && spot?.lngLat) map.flyTo({ center: [spot.lngLat[0], spot.lngLat[1]], zoom: 16 })
   }
 
   return (
@@ -57,14 +35,14 @@ export function HeatStoryPanel({ data, communeName, tubeDataset, map }: HeatStor
         <h3 className="font-semibold text-sm">
           {study?.cleanSeparation
             ? "Satellite data backs the PRO-SUD heat study"
-            : `Summer surface temperature in ${communeName}, observed by satellite since ${years[0]}`}
+            : `Summer surface temperature in ${communeName}, observed by satellite since ${years?.first ?? ""}`}
         </h3>
         <p className="text-xs text-muted-foreground">
           {study?.cleanSeparation ? (
             <>
               In 2024, the PRO-SUD communes, LIST and GEO-NET mapped summer heat across Esch and 10 neighbouring
               communes (<em>Bioklima-Analyse für die PRO-SUD Region</em>). The study named specific hot and cool
-              spots in Esch. Below is what satellites measured at those spots over {years.length} summers.{" "}
+              spots in Esch. Below is what satellites measured at those spots over {years?.count ?? 0} summers.{" "}
               <a
                 href="https://minett-biosphere.com/wp-content/uploads/2024/10/Bioklima-Analyse-Region-PRO-SUD.pdf"
                 target="_blank"
@@ -75,7 +53,7 @@ export function HeatStoryPanel({ data, communeName, tubeDataset, map }: HeatStor
               </a>
             </>
           ) : study ? (
-            `Checked against ${years[0]}–${years[years.length - 1]} satellite data — at least one named place didn't rank where the PRO-SUD study's naming would suggest.`
+            `Checked against ${yearRange} satellite data — at least one named place didn't rank where the PRO-SUD study's naming would suggest.`
           ) : (
             "No comparison against the PRO-SUD study prepared for this commune yet."
           )}
@@ -88,7 +66,7 @@ export function HeatStoryPanel({ data, communeName, tubeDataset, map }: HeatStor
             coldestHotPointC={study.coldestHotPointC}
             warmestCoolPointC={study.warmestCoolPointC}
             cleanSeparation={study.cleanSeparation}
-            yearRange={`${years[0]}–${years[years.length - 1]}`}
+            yearRange={yearRange}
             map={map}
           />
         )}
@@ -97,30 +75,28 @@ export function HeatStoryPanel({ data, communeName, tubeDataset, map }: HeatStor
           <button
             type="button"
             onClick={flyToHottestSpot}
-            disabled={!latestYearStats?.hottestNonIndustrial?.lngLat}
+            disabled={!spot?.lngLat}
             className="rounded-md bg-muted px-2.5 py-2 text-left hover:bg-muted/70 disabled:hover:bg-muted"
           >
             <div className="font-semibold text-base">
-              {latestYearStats?.hottestNonIndustrial
-                ? `+${latestYearStats.hottestNonIndustrial.anomalyC.toFixed(1)}°C`
-                : "—"}
+              {spot ? `+${spot.anomalyC.toFixed(1)}°C` : "—"}
             </div>
             <div className="text-muted-foreground">
-              Hottest public/residential spot, {latestYear}
-              {latestYearStats?.hottestNonIndustrial?.place ? ` — ${latestYearStats.hottestNonIndustrial.place}` : ""}
+              Hottest public/residential spot, {hottestSpot?.year}
+              {spot?.place ? ` — ${spot.place}` : ""}
             </div>
           </button>
           <div className="rounded-md bg-muted px-2.5 py-2">
             <div className="font-semibold text-base">
-              {totalEverHottest} of {data.buildings.length}
+              {sensitiveBuildings.everInHottest} of {sensitiveBuildings.total}
             </div>
             <div className="text-muted-foreground">
               Schools &amp; care sites in the hottest 10%
-              {namedShown.length > 0 && (
+              {sensitiveBuildings.shown.length > 0 && (
                 <>
                   {" — "}
-                  {namedShown.map((b) => `${b.name} (${b.count} of ${years.length} summers)`).join(", ")}
-                  {namedRemaining > 0 ? `, +${namedRemaining} more` : ""}
+                  {sensitiveBuildings.shown.map((b) => `${b.name} (${b.summers} of ${years?.count ?? 0} summers)`).join(", ")}
+                  {sensitiveBuildings.remaining > 0 ? `, +${sensitiveBuildings.remaining} more` : ""}
                 </>
               )}
             </div>

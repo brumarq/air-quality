@@ -1,6 +1,7 @@
 import type { AirQualityStation, Reading } from "@/domain/air-quality"
-import { formatReadingTime } from "./format-time"
-import { LIMIT_STATUS_COLOR, LIMIT_TODAY_COLOR, LIMIT_2030_COLOR, getLimitStatus, type PollutantLimit } from "@/domain/limits"
+import type { PollutantLimit } from "@/domain/limits"
+import { tokens } from "@/theme/tokens"
+import { buildStationBar } from "./station-bar-model"
 
 interface StationLimitBarProps {
   station: AirQualityStation
@@ -11,60 +12,29 @@ interface StationLimitBarProps {
 }
 
 export function StationLimitBar({ station, color, points, limit, live }: StationLimitBarProps) {
-  const matching = points.filter((p) => p.unit === limit.unit)
-  const scaleMax = limit.limitToday * 1.25
-  const todayPct = Math.min(100, (limit.limitToday / scaleMax) * 100)
-  const limit2030Pct = Math.min(100, (limit.limit2030 / scaleMax) * 100)
-
-  if (matching.length === 0) {
-    return (
-      <div className="flex flex-col gap-1">
-        <div className="flex items-baseline justify-between gap-2">
-          <span className="flex items-center gap-2 min-w-0">
-            <span className="w-4 h-1 rounded-sm opacity-30 -translate-y-1" style={{ background: color }} />
-            <span className="text-sm font-medium">{station.name}</span>
-          </span>
-          <span className="text-sm text-muted-foreground">No data</span>
-        </div>
-        <div className="relative h-4">
-          <div className="absolute top-1 left-0 right-0 h-2 rounded bg-bar-track" />
-        </div>
-        <span className="text-xs text-muted-foreground">No recent reading for this period</span>
-      </div>
-    )
-  }
-
-  const value = live ? matching[matching.length - 1].value : matching.reduce((sum, p) => sum + p.value, 0) / matching.length
-  const latestAt = matching[matching.length - 1].at
-  const pct = Math.min(100, (value / scaleMax) * 100)
-  const status = getLimitStatus(value, limit)
+  const bar = buildStationBar(points, limit, live)
 
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-baseline justify-between gap-2">
         <span className="flex items-center gap-2 min-w-0">
-          <span className="w-4 h-1 rounded-sm -translate-y-1" style={{ background: color }} />
+          <span className={`w-4 h-1 rounded-sm -translate-y-1 ${bar.hasData ? "" : "opacity-30"}`} style={{ background: color }} />
           <span className="text-sm font-medium">{station.name}</span>
         </span>
-        <span className="text-lg font-semibold tabular-nums">{value.toFixed(1)}</span>
+        <span className={bar.hasData ? "text-lg font-semibold tabular-nums" : "text-sm text-muted-foreground"}>{bar.valueText}</span>
       </div>
       <div className="relative h-4">
         <div className="absolute top-1 left-0 right-0 h-2 rounded bg-bar-track" />
-        <div
-          className="absolute top-1 left-0 h-2 rounded"
-          style={{ width: `${pct}%`, background: LIMIT_STATUS_COLOR[status] }}
-        />
-        <div
-          className="absolute top-0 h-4 w-1 -ml-px"
-          style={{ left: `${limit2030Pct}%`, background: LIMIT_2030_COLOR }}
-        />
-        <div className="absolute top-0 h-4 w-1 -ml-px" style={{ left: `${todayPct}%`, background: LIMIT_TODAY_COLOR }} />
+        {bar.hasData && (
+          <>
+            <div className="absolute top-1 left-0 h-2 rounded" style={{ width: `${bar.fillPct}%`, background: bar.fillColor ?? undefined }} />
+            <div className="absolute top-0 h-4 w-1 -ml-px" style={{ left: `${bar.limit2030Pct}%`, background: tokens.limit.target2030 }} />
+            <div className="absolute top-0 h-4 w-1 -ml-px" style={{ left: `${bar.limitTodayPct}%`, background: tokens.limit.today }} />
+          </>
+        )}
       </div>
-      <span className="text-xs text-muted-foreground">
-        {live
-          ? `Latest reading · ${formatReadingTime(latestAt)}`
-          : `Average of ${matching.length} reading${matching.length === 1 ? "" : "s"} · latest ${formatReadingTime(latestAt)}`}
-      </span>
+      <span className="text-xs text-muted-foreground">{bar.caption}</span>
+      {bar.droppedNote && <span className="text-xs text-muted-foreground">{bar.droppedNote}</span>}
     </div>
   )
 }

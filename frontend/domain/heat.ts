@@ -94,3 +94,55 @@ export function cellYear(cell: HeatCell, year: number): HeatCellYear | null {
 export function latestHeatYear(data: HeatMapData): number | null {
   return data.years.at(-1) ?? null
 }
+
+export interface HeatStoryViewModel {
+  /** The summers covered; null when there are none. */
+  years: { first: number; last: number; count: number } | null
+  /** The latest summer's hottest non-industrial spot. `spot` is null without a reading. */
+  hottestSpot: { year: number; spot: HeatYearStats["hottestNonIndustrial"] } | null
+  sensitiveBuildings: {
+    /** Distinct buildings in the hottest 10% in at least one summer, named or not. */
+    everInHottest: number
+    total: number
+    /** The named ones most often in the hottest 10%, most summers first. */
+    shown: { osmId: string; name: string; summers: number }[]
+    /** everInHottest minus shown, so "N shown, +M more" always adds up to the total. */
+    remaining: number
+  }
+  study: StudyComparison | null
+}
+
+const SHOWN_BUILDINGS = 2
+
+/** Everything the heat story panel shows, computed from the commune's heat data. */
+export function buildHeatStory(data: HeatMapData): HeatStoryViewModel {
+  const first = data.years.at(0)
+  const last = data.years.at(-1)
+  const latestStats = last === undefined ? null : statsForYear(data, last)
+
+  // Keyed by OSM id, not name: two unnamed facilities must not merge into one.
+  const summersInHottest = new Map<string, { name: string | null; summers: number }>()
+  for (const yearStats of data.stats) {
+    for (const b of yearStats.sensitiveBuildingsInHottest10pct) {
+      const entry = summersInHottest.get(b.osmId) ?? { name: b.name, summers: 0 }
+      summersInHottest.set(b.osmId, { ...entry, summers: entry.summers + 1 })
+    }
+  }
+
+  const shown = [...summersInHottest.entries()]
+    .flatMap(([osmId, b]) => (b.name === null ? [] : [{ osmId, name: b.name, summers: b.summers }]))
+    .sort((a, b) => b.summers - a.summers)
+    .slice(0, SHOWN_BUILDINGS)
+
+  return {
+    years: first === undefined || last === undefined ? null : { first, last, count: data.years.length },
+    hottestSpot: last === undefined ? null : { year: last, spot: latestStats?.hottestNonIndustrial ?? null },
+    sensitiveBuildings: {
+      everInHottest: summersInHottest.size,
+      total: data.buildings.length,
+      shown,
+      remaining: summersInHottest.size - shown.length,
+    },
+    study: data.studyComparison,
+  }
+}

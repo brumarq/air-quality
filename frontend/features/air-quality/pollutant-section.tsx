@@ -1,4 +1,5 @@
-import { STATION_COLORS, type PollutantLimit } from "@/domain/limits"
+import type { PollutantLimit } from "@/domain/limits"
+import { stationColor } from "./station-colors"
 import type { StationHistory } from "@/domain/air-quality"
 import { StationLimitBar } from "./station-limit-bar"
 
@@ -25,7 +26,7 @@ export function PollutantSection({ history, limit, live }: PollutantSectionProps
           <StationLimitBar
             key={station.id}
             station={station}
-            color={STATION_COLORS[i % STATION_COLORS.length]}
+            color={stationColor(i)}
             points={points}
             limit={limit}
             live={live}

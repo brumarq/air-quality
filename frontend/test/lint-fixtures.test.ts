@@ -9,7 +9,7 @@
 import { readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 import { ESLint } from "eslint"
-import { describe, expect, it } from "vitest"
+import { beforeAll, describe, expect, it } from "vitest"
 
 const ROOT = join(__dirname, "..")
 const FIXTURES = join(ROOT, "lint-fixtures")
@@ -27,6 +27,12 @@ const fixtures = readdirSync(FIXTURES).map((name) => {
   const expected = header(source, "expect")
   return { name, source, path: header(source, "path"), expected: expected === "clean" ? [] : expected.split(/,\s*/).sort() }
 })
+
+// The first lint loads every plugin (the Tailwind one loads the whole Tailwind config),
+// which can take several seconds on a cold machine. Do it once, outside any one case.
+beforeAll(async () => {
+  await eslint.lintText("export {}", { filePath: join(ROOT, "app/warm-up.ts") })
+}, 60_000)
 
 describe("lint rules fire exactly where expected", () => {
   it.each(fixtures)("$name", async ({ source, path, expected }) => {

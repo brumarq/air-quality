@@ -19,7 +19,7 @@ describe("StationLimitBar", () => {
     expect(barText([{ at: utc("2026-07-08T10:00:00Z"), value: 20, unit: "µg/m³" }], true)).toContain("7/8/2026, 12:00:00 PM")
   })
 
-  it.fails("says how many readings were left out for having another unit", () => {
+  it("says how many readings were left out for having another unit", () => {
     const text = barText(
       [
         { at: utc("2026-11-08T09:00:00Z"), value: 20, unit: "µg/m³" },
