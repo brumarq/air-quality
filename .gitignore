@@ -11,3 +11,6 @@ deploy/values/local.yaml
 
 # Helm dependency archives
 deploy/helm/air-quality/charts/*.tgz
+
+# Python venvs for one-off scripts (e.g. scripts/.venv-gee)
+scripts/.venv*/
