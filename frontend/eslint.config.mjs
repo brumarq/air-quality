@@ -33,6 +33,26 @@ const restrict = (files, patterns) => ({
   rules: { "no-restricted-imports": ["error", { patterns: [DEEP_FEATURE_IMPORT, PARENT_RELATIVE_IMPORT, ...patterns] }] },
 })
 
+// domain/ must give the same answer on any machine, in any zone or locale: no local-time
+// setters, no locale formatting, no reading the clock, no parsing date strings.
+const DOMAIN_PURITY = [
+  {
+    selector: "CallExpression[callee.property.name=/^(setHours|setMinutes|setSeconds|setDate|setMonth|setFullYear)$/]",
+    message: "Local-time setters depend on the machine's zone. Use the helpers in domain/time.ts.",
+  },
+  {
+    selector: "CallExpression[callee.property.name=/^toLocale.*String$/]",
+    message: "Formatting is display work; do it in a feature, not in domain/.",
+  },
+  { selector: "NewExpression[callee.object.name='Intl']", message: "Intl formatting is display work; do it in a feature." },
+  { selector: "NewExpression[callee.name='Date'][arguments.length=0]", message: "domain/ must not read the clock; take `now` as an argument." },
+  { selector: "CallExpression[callee.object.name='Date'][callee.property.name='now']", message: "domain/ must not read the clock; take `now` as an argument." },
+  {
+    selector: "NewExpression[callee.name='Date'][arguments.0.type=/^(Literal|TemplateLiteral)$/]",
+    message: "Parsing a date string here can read it as local time. api/ turns strings into instants.",
+  },
+]
+
 const eslintConfig = [
   { ignores: ["lint-fixtures/**", ".next/**", ".next-e2e/**", "test-results/**", "playwright-report/**", "node_modules/**", "public/**", "next-env.d.ts"] },
   ...compat.extends("next/core-web-vitals", "next/typescript"),
@@ -67,6 +87,10 @@ const eslintConfig = [
   restrict(["api/**"], [
     ban(["@/features/*", "@/app/**", "@/map/*", "@/components/*", "@/components/**", "react", "mapbox-gl"], "api/ loads data: it may only use domain/ and data/."),
   ]),
+  {
+    files: ["domain/**"],
+    rules: { "no-restricted-syntax": ["error", NO_DYNAMIC_IMPORT, ...DOMAIN_PURITY] },
+  },
   restrict(["domain/**"], [
     ban(["@/app/**", "@/features/*", "@/map/*", "@/api/*", "@/components/**", "@/lib/*", "@/data/**", "react", "react-dom", "mapbox-gl", "next", "next/*"], "domain/ is pure TypeScript: it may only import other domain/ files."),
   ]),
