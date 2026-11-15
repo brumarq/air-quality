@@ -1,10 +1,5 @@
 # Air Quality Monitor
 
-> [!WARNING]  
-> **Hey!** This is just a pet project I built to learn and experiment with technologies like **Kafka**, **Go**, **Domain-Driven Design**, **Hexagonal Architecture**, **Mapbox**, and more. It's not production-ready, there are no tests, just a fun playground for exploring how these pieces fit together.
-
----
-
 ## What Does It Look Like?
 ![example](https://github.com/user-attachments/assets/de2521c6-fb06-4dc1-82ec-dea4b71b3d9f)
 
@@ -112,6 +107,7 @@ kubectl get pods -n air-quality -w
 curl http://air-quality.test/api/v1/air-quality/locations
 ```
 Then open `http://air-quality.test` in a browser. Note the collector polls OpenAQ every 2 minutes, so the map may take a moment to populate on first boot.
+
 ---
 
 ## Tech Stack
@@ -123,19 +119,3 @@ Then open `http://air-quality.test` in a browser. Note the collector polls OpenA
 | **Data Collector** | Go |
 | **Message Broker** | Apache Kafka |
 | **Database** | PostgreSQL |
-
----
-
-## What I Learned
-
-- **Hexagonal Architecture** - Keeping domain logic isolated from infrastructure
-- **DDD Patterns** - Aggregates, Value Objects, Repositories
-- **Event-Driven Systems** - Using Kafka for async data ingestion
-- **Go** - Building a simple data collector
-- **Mapbox** - Interactive map visualizations
-
----
-
-## License
-
-Do whatever you want with it. It's just for learning.
