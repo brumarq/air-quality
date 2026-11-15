@@ -1,15 +1,16 @@
 import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
+import { preconnect } from "react-dom"
 import "./globals.css"
-import { ThemeProvider } from "@/components/theme-provider"
+import { ThemeProvider } from "@/app/_components/theme-provider"
+import { API_BASE_URL } from "@/features/air-quality/api"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "Luxembourg Air Quality Map",
   description: "Interactive air quality map for Luxembourg",
-    generator: 'v0.dev'
 }
 
 export default function RootLayout({
@@ -17,11 +18,10 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  preconnect("https://api.mapbox.com", { crossOrigin: "anonymous" })
+  preconnect(new URL(API_BASE_URL).origin, { crossOrigin: "anonymous" })
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
-      </head>
       <body className={inter.className} suppressHydrationWarning>
         <ThemeProvider attribute="class" defaultTheme="light" disableTransitionOnChange>
           {children}
@@ -30,7 +30,3 @@ export default function RootLayout({
     </html>
   )
 }
-
-
-
-import './globals.css'

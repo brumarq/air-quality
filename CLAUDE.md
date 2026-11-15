@@ -11,11 +11,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Clean**: `./gradlew clean`
 
 ### Frontend (Next.js TypeScript)
-- **Install dependencies**: `npm install` (from `frontend/` directory)
-- **Development**: `npm run dev` (starts on port 3000)
-- **Build**: `npm run build`
-- **Lint**: `npm run lint`
-- **Production**: `npm run start`
+See `frontend/CLAUDE.md` for commands, layer rules and conventions.
 
 ### Data Collector (Go)
 - **Build**: `go build -o collector ./cmd` (from `openaq-collector/` directory)
@@ -53,11 +49,7 @@ Located in `backend/src/main/java/com/airquality/backend/`:
 - Domain models enforce invariants (e.g., sensor must belong to station)
 
 ### 2. Frontend (Next.js + TypeScript)
-Located in `frontend/`:
-- Interactive map using Mapbox GL (`components/map/`)
-- Real-time air quality data visualization
-- Responsive design with Tailwind CSS + shadcn/ui components
-- API client in `lib/api/air-quality.ts` connects to backend on port 8081
+See `frontend/CLAUDE.md`.
 
 ### 3. Data Collector (Go)
 Located in `openaq-collector/`:
@@ -98,9 +90,12 @@ The backend follows DDD with clear separation:
 ## Testing Strategy
 
 - **Backend**: JUnit tests in `src/test/java/`
-- **Frontend**: Run `npm run lint` for code quality
+- **Frontend**: `npm run check` and `npm run e2e`; see `frontend/CLAUDE.md`
 - **Integration**: Ensure Kafka, PostgreSQL, and all services are running for full system test
 
 ## DevOps / Infrastructure
 
-The project is being containerized and deployed to Kubernetes (minikube) via Helm + ArgoCD, with CI/CD through GitHub Actions and GHCR. See `PLAN.md` for the full DevOps roadmap, current phase, and step-by-step instructions.
+The project is being containerized and deployed to Kubernetes (minikube) via Helm + ArgoCD, with CI/CD through GitHub Actions and GHCR.
+
+## Frontend rules
+See `frontend/CLAUDE.md` for how the frontend shows numbers, builds components and decides what logic to write.

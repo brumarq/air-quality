@@ -1,8 +1,6 @@
 """
-Week 0 check #2 (ESCH-HEAT-PROFILE-PLAN.md, Step 3): does Landsat's own observed
-summer surface temperature agree with the PRO-SUD study's named hotspots/cool spots
-for Esch? If yes, a satellite-based page is a credible "living layer" on top of their
-study. If no, the whole Step 3 pitch needs rethinking before any UI gets built.
+Does Landsat's own observed summer surface temperature agree with the PRO-SUD study's
+named hotspots/cool spots for Esch? Writes the comparison the heat story panel shows.
 
 Method: Landsat 8/9 Collection 2 Level-2 ST_B10 (surface temperature), cloud-masked,
 summer months (Jun-Aug) 2022-2025, median composite over a box around Esch. Anomaly =
@@ -21,8 +19,7 @@ ee.Initialize(project="air-quality-451910")
 REPO_ROOT = Path(__file__).resolve().parent.parent
 OUT_PATH = REPO_ROOT / "frontend" / "public" / "data" / "esch-sur-alzette" / "study-comparison.json"
 
-# Named locations from the PRO-SUD study (ESCH-HEAT-PROFILE-PLAN.md Step 3, "Esch
-# hotspots named in the study" / "Cool spots named"). Coordinates geocoded via
+# Hot and cool spots named in the PRO-SUD study. Coordinates geocoded via
 # Nominatim/OSM 2026-11-08; boulevard Kennedy reused from the already-verified
 # frontend/data/no2-tubes/esch.json.
 # 5th field: approximate (street-level geocode, not the actual feature's polygon - no
@@ -114,8 +111,8 @@ if min_hot > max_cool:
 else:
     print("Overlap found - at least one named point doesn't rank where the study says it should.")
 
-# Written for Week 3's story panel - the study-vs-satellite callout should read this
-# file, not have these numbers hand-typed into JSX.
+# Read by the heat story panel's study-vs-satellite list, so these numbers are never
+# hand-typed into the frontend.
 OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
 OUT_PATH.write_text(json.dumps({
     "method": "Landsat 8+9 median surface temperature, summer (Jun-Aug) 2022-2025, sampled at each named point",

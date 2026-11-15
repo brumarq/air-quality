@@ -1,0 +1,83 @@
+import { afterEach, describe, expect, it, vi } from "vitest"
+import { AirQualityApi, UtcTimestampSchema, getAreaStations } from "./api"
+
+afterEach(() => vi.unstubAllGlobals())
+
+function serveReadings(readings: unknown) {
+  vi.stubGlobal("fetch", () => Promise.resolve(new Response(JSON.stringify(readings))))
+}
+
+const reading = (timestamp: string, value = 20) => ({ timestamp, value, unit: "µg/m³" })
+
+describe("reading timestamps", () => {
+  it("reads the backend's zoneless timestamps as UTC, not as the local time JavaScript would assume", async () => {
+    serveReadings([reading("2026-11-08T10:00:00")])
+    const [point] = await AirQualityApi.getSensorReadingHistory(1, new Date(0), new Date(0))
+    expect(point?.at.toISOString()).toBe("2026-11-08T10:00:00.000Z")
+  })
+
+  it("reads summer timestamps as UTC too", async () => {
+    serveReadings([reading("2026-07-08T10:00:00")])
+    const [point] = await AirQualityApi.getSensorReadingHistory(1, new Date(0), new Date(0))
+    expect(point?.at.toISOString()).toBe("2026-07-08T10:00:00.000Z")
+  })
+
+  it("returns readings oldest first, since the backend query has no ORDER BY and latest must mean last", async () => {
+    serveReadings([reading("2026-11-08T11:00:00", 2), reading("2026-11-08T09:00:00", 0), reading("2026-11-08T10:00:00", 1)])
+    const points = await AirQualityApi.getSensorReadingHistory(1, new Date(0), new Date(0))
+    expect(points.map((p) => p.value)).toEqual([0, 1, 2])
+  })
+
+  it("rejects a reading whose timestamp isn't zoneless UTC", async () => {
+    serveReadings([reading("2026-11-08T10:00:00+01:00")])
+    await expect(AirQualityApi.getSensorReadingHistory(1, new Date(0), new Date(0))).rejects.toThrow(/zoneless UTC timestamp/)
+  })
+})
+
+describe("reading queries", () => {
+  it("sends the window as zoneless UTC, the format the backend reads", async () => {
+    const requested: string[] = []
+    vi.stubGlobal("fetch", (input: string) => {
+      requested.push(input)
+      return Promise.resolve(new Response("[]"))
+    })
+    await AirQualityApi.getSensorReadingHistory(1, new Date("2026-11-08T09:00:00Z"), new Date("2026-11-08T10:00:00Z"))
+    const params = new URL(requested[0] ?? "").searchParams
+    expect([params.get("from"), params.get("to")]).toEqual(["2026-11-08T09:00:00", "2026-11-08T10:00:00"])
+  })
+})
+
+describe("UtcTimestampSchema", () => {
+  it.each([
+    ["2026-11-08T10:00:00", "2026-11-08T10:00:00.000Z"],
+    ["2026-11-08T10:00", "2026-11-08T10:00:00.000Z"],
+    ["2026-11-08T10:00:00.250", "2026-11-08T10:00:00.250Z"],
+  ])("accepts %s", (input, expected) => {
+    expect(UtcTimestampSchema.parse(input).toISOString()).toBe(expected)
+  })
+
+  it.each(["2026-11-08T10:00:00Z", "2026-11-08T10:00:00+01:00", "2026-11-08", "2026-13-40T10:00:00", "yesterday"])(
+    "rejects %s",
+    (input) => {
+      expect(UtcTimestampSchema.safeParse(input).success).toBe(false)
+    },
+  )
+})
+
+describe("getAreaStations", () => {
+  it("fetches sensors only for the area's stations the backend knows, in the area's order", async () => {
+    const requested: string[] = []
+    vi.stubGlobal("fetch", (input: string) => {
+      const path = new URL(input).pathname.replace("/api/v1/air-quality", "")
+      requested.push(path)
+      const body =
+        path === "/locations"
+          ? [1, 2, 3].map((id) => ({ id, name: `S${id}`, city: null, country: "LU", latitude: 0, longitude: 0 }))
+          : []
+      return Promise.resolve(new Response(JSON.stringify(body)))
+    })
+    const stations = await getAreaStations([3, 1, 99])
+    expect(stations.map((s) => s.id)).toEqual([3, 1])
+    expect(requested.sort()).toEqual(["/locations", "/locations/1/sensors", "/locations/3/sensors"])
+  })
+})

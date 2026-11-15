@@ -1,11 +1,10 @@
 """
-Step 3, Week 1 (ESCH-HEAT-PROFILE-PLAN.md): the heat-map data pipeline.
+The heat-map data pipeline.
 
 Builds a 100m grid over Esch-sur-Alzette's real commune boundary, computes per-year
 (2022-2025) summer Landsat surface-temperature anomaly + absolute °C, and Sentinel-2
 NDVI, all at the grid's native 100m - no finer, since that's the thermal sensor's
-actual resolution and finer would be false precision (see the conversation this script
-came out of). Also pulls sensitive buildings (schools, crèches, care homes) from OSM.
+actual resolution and finer would be false precision. Also pulls sensitive buildings (schools, crèches, care homes) from OSM.
 Outputs static GeoJSON/JSON under frontend/public/data/esch/ - no backend, no Kafka,
 this data changes once a year at most.
 """
@@ -122,10 +121,9 @@ def overpass_query(query, timeout=90, attempts=4):
 def fetch_industrial_landuse(boundary_4326):
     """Industrial land (landuse=industrial) within Esch, as one merged polygon - used to
     exclude cells like the active ArcelorMittal Belval plant from the "hottest 10%"
-    headline figure. That land reads extremely hot (process heat, bare ground - see
-    ESCH-HEAT-PROFILE-PLAN.md), but it's private industrial land a commune officer has
-    no lever over, and a reviewer caught 2026-11-xx that it was crowding real,
-    actionable school hotspots out of the hottest-10% set entirely. Confirmed by
+    headline figure. That land reads extremely hot (process heat, bare ground), but
+    it's private industrial land a commune officer has no lever over, and it was
+    crowding real, actionable school hotspots out of the hottest-10% set entirely. Confirmed by
     checking: with industrial cells included, only Lycée Guillaume Kroll and one
     unnamed facility ever appeared in the hottest 10%; excluding them surfaced École
     Jean Jaurès and École Brill too, in the years industrial cells had been dominating."""

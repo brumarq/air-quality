@@ -23,7 +23,7 @@ import (
 // chart isn't limited to "since the live collector happened to be running". Reuses the
 // sensors already known to the backend (created by the live Kafka pipeline) rather than
 // creating stations/sensors itself - run the collector against a location at least once
-// before backfilling it. See ESCH-HEAT-PROFILE-PLAN.md Step 2.5 ("PM2.5 station backfill").
+// before backfilling it.
 //
 // Usage:
 //   go run ./cmd/backfill --location 9650 --from 2025-01-01
