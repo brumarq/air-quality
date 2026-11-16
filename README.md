@@ -1,7 +1,9 @@
 # Air Quality Monitor
 
 ## What Does It Look Like?
-![example](https://github.com/user-attachments/assets/de2521c6-fb06-4dc1-82ec-dea4b71b3d9f)
+<img width="1920" height="1200" alt="screenshot-2026-11-16_16-00-35-brave-origin" src="https://github.com/user-attachments/assets/93d5ad68-a405-487b-b073-8cfb28bbdc4f" />
+
+<img width="1920" height="1200" alt="screenshot-2026-11-16_16-02-37-brave-origin" src="https://github.com/user-attachments/assets/eb20de55-273d-4273-b957-083d8e931e6e" />
 
 ---
 
